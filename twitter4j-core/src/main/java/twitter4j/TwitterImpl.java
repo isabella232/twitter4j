@@ -288,33 +288,35 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
         , new HttpParameter("media", fileName, image)).asJSONObject());
   }
 
-  @Override
-  public UploadedMedia uploadMediaChunked(String fileName, InputStream media) throws TwitterException {
-    //If the InputStream is remote, this is will download it into memory speeding up the chunked upload process
-    byte[] dataBytes = null;
+  private byte[] getBytes(InputStream inputStream) throws TwitterException {
     try {
 
       ByteArrayOutputStream baos = new ByteArrayOutputStream(256 * 1024);
       byte[] buffer = new byte[32768];
       int n;
-      while((n = media.read(buffer)) != -1) {
+      while((n = inputStream.read(buffer)) != -1) {
         baos.write(buffer, 0, n);
       }
-      dataBytes = baos.toByteArray();
+      byte[] dataBytes = baos.toByteArray();
 
       if (dataBytes.length > MAX_VIDEO_SIZE) {
-        throw new TwitterException(String.format(Locale.US,
-            "video file can't be longer than: %d MBytes",
-            MAX_VIDEO_SIZE / MB));
+        throw new TwitterException(String.format(Locale.US, "video file can't be longer than: %d MBytes", MAX_VIDEO_SIZE / MB));
       }
+
+      return dataBytes;
     } catch (IOException ioe) {
       throw new TwitterException("Failed to download the file.", ioe);
     }
+  }
+
+  @Override
+  public UploadedMedia uploadMediaChunked(String fileName, InputStream media) throws TwitterException {
+    // If the InputStream is remote, this is will download it into memory speeding up the chunked upload process
+    byte[] dataBytes = getBytes(media);
 
     try {
 
-      UploadedMedia uploadedMedia = uploadMediaChunkedInit(dataBytes.length);
-      //no need to close ByteArrayInputStream
+      UploadedMedia uploadedMedia = uploadMediaChunkedInit(dataBytes.length); // no need to close ByteArrayInputStream?
       ByteArrayInputStream dataInputStream = new ByteArrayInputStream(dataBytes);
 
       byte[] segmentData = new byte[CHUNK_SIZE];
@@ -324,9 +326,11 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
 
       while ((bytesRead = dataInputStream.read(segmentData)) > 0) {
         totalRead = totalRead + bytesRead;
-        logger.debug("Chunked append, segment index:" + segmentIndex + " bytes:" + totalRead + "/" + dataBytes.length);
-        //no need to close ByteArrayInputStream
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(segmentData, 0, bytesRead);
+        logger.debug(String.format("Chunked append, segment index: %s bytes: %s/%s",
+            segmentIndex,
+            totalRead,
+            dataBytes));
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(segmentData, 0, bytesRead); // no need to close ByteArrayInputStream ?
         uploadMediaChunkedAppend(fileName, byteArrayInputStream, segmentIndex, uploadedMedia.getMediaId());
         segmentData = new byte[CHUNK_SIZE];
         segmentIndex++;
@@ -377,7 +381,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
       if (state.equals("pending") || state.equals("in_progress")) {
         currentProgressPercent = uploadedMedia.getProgressPercent();
         int waitSec = Math.max(uploadedMedia.getProcessingCheckAfterSecs(), 1);
-        logger.debug("Chunked finalize, wait for:" + waitSec + " sec");
+        logger.debug(String.format("Chunked finalize, wait for: %s seconds", waitSec));
         try {
           Thread.sleep(waitSec * 1000);
         } catch (InterruptedException e) {
@@ -389,7 +393,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
       }
       uploadedMedia = uploadMediaChunkedStatus(mediaId);
     }
-    throw new TwitterException("Failed to finalize the chunked upload, progress has stopped, tried " + tries + 1 + " times.");
+    throw new TwitterException(String.format("Failed to finalize the chunked upload, progress has stopped, tried %s times.", tries + 1));
   }
 
   private UploadedMedia uploadMediaChunkedFinalize0(long mediaId) throws TwitterException {
