@@ -17,117 +17,117 @@ package twitter4j;
 
 /**
  * Represents result of "/1.1/media/upload.json"
- * 
+ *
  * @author Hiroaki TAKEUCHI - takke30 at gmail.com
  * @since Twitter4J 4.0.2
  */
 public final class UploadedMedia implements java.io.Serializable {
 
-    private static final long serialVersionUID = 5393092535610604718L;
-    
-    private int imageWidth;
-    private int imageHeight;
-    private String imageType;
-    private long mediaId;
-    private long size;
-    private String processingState;
-    private int processingCheckAfterSecs;
-    private int progressPercent;
+  private static final long serialVersionUID = 5393092535610604718L;
 
-    /*package*/ UploadedMedia(JSONObject json) throws TwitterException {
-        init(json);
-    }
+  private int imageWidth;
+  private int imageHeight;
+  private String imageType;
+  private long mediaId;
+  private long size;
+  private String processingState;
+  private int processingCheckAfterSecs;
+  private int progressPercent;
 
-    public int getImageWidth() {
-        return imageWidth;
-    }
+  /*package*/ UploadedMedia(JSONObject json) throws TwitterException {
+    init(json);
+  }
 
-    public int getImageHeight() {
-        return imageHeight;
-    }
+  public int getImageWidth() {
+    return imageWidth;
+  }
 
-    public String getImageType() {
-        return imageType;
-    }
+  public int getImageHeight() {
+    return imageHeight;
+  }
 
-    public long getMediaId() {
-        return mediaId;
-    }
+  public String getImageType() {
+    return imageType;
+  }
 
-    public long getSize() {
-        return size;
-    }
-    
-    public String getProcessingState() {
-    	return processingState;
-    }
-    
-    public int getProcessingCheckAfterSecs() {
-    	return processingCheckAfterSecs;
-    }
-  
-    public int getProgressPercent() {
-    	return progressPercent;
-    }
+  public long getMediaId() {
+    return mediaId;
+  }
 
-    private void init(JSONObject json) throws TwitterException {
-        mediaId = ParseUtil.getLong("media_id", json);
-        size = ParseUtil.getLong("size", json);
-        try {
-            if (!json.isNull("image")) {
-                JSONObject image = json.getJSONObject("image");
-                imageWidth = ParseUtil.getInt("w", image);
-                imageHeight = ParseUtil.getInt("h", image);
-                imageType = ParseUtil.getUnescapedString("image_type", image);
-            }
-            
-            if (!json.isNull("processing_info")) {
-            	JSONObject processingInfo = json.getJSONObject("processing_info");
-            	processingState = ParseUtil.getUnescapedString("state", processingInfo);
-            	processingCheckAfterSecs = ParseUtil.getInt("check_after_secs", processingInfo);
-            	progressPercent = ParseUtil.getInt("progress_percent", processingInfo);
-            	
-            }
-            
-        } catch (JSONException jsone) {
-            throw new TwitterException(jsone);
-        }
+  public long getSize() {
+    return size;
+  }
+
+  public String getProcessingState() {
+    return processingState;
+  }
+
+  public int getProcessingCheckAfterSecs() {
+    return processingCheckAfterSecs;
+  }
+
+  public int getProgressPercent() {
+    return progressPercent;
+  }
+
+  private void init(JSONObject json) throws TwitterException {
+    mediaId = ParseUtil.getLong("media_id", json);
+    size = ParseUtil.getLong("size", json);
+    try {
+      if (!json.isNull("image")) {
+        JSONObject image = json.getJSONObject("image");
+        imageWidth = ParseUtil.getInt("w", image);
+        imageHeight = ParseUtil.getInt("h", image);
+        imageType = ParseUtil.getUnescapedString("image_type", image);
+      }
+
+      if (!json.isNull("processing_info")) {
+        JSONObject processingInfo = json.getJSONObject("processing_info");
+        processingState = ParseUtil.getUnescapedString("state", processingInfo);
+        processingCheckAfterSecs = ParseUtil.getInt("check_after_secs", processingInfo);
+        progressPercent = ParseUtil.getInt("progress_percent", processingInfo);
+
+      }
+
+    } catch (JSONException jsone) {
+      throw new TwitterException(jsone);
     }
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
 
-        UploadedMedia that = (UploadedMedia) o;
+    UploadedMedia that = (UploadedMedia) o;
 
-        if (imageWidth != that.imageWidth) return false;
-        if (imageHeight != that.imageHeight) return false;
-        if (imageType != that.imageType) return false;
-        if (mediaId != that.mediaId) return false;
-        if (size != that.size) return false;
+    if (imageWidth != that.imageWidth) return false;
+    if (imageHeight != that.imageHeight) return false;
+    if (imageType != that.imageType) return false;
+    if (mediaId != that.mediaId) return false;
+    if (size != that.size) return false;
 
-        return true;
-    }
+    return true;
+  }
 
-    @Override
-    public int hashCode() {
-        int result = (int) (mediaId ^ (mediaId >>> 32));
-        result = 31 * result + imageWidth;
-        result = 31 * result + imageHeight;
-        result = 31 * result + (imageType != null ? imageType.hashCode() : 0);
-        result = 31 * result + (int)(size ^ (size >>> 32));
-        return result;
-    }
+  @Override
+  public int hashCode() {
+    int result = (int) (mediaId ^ (mediaId >>> 32));
+    result = 31 * result + imageWidth;
+    result = 31 * result + imageHeight;
+    result = 31 * result + (imageType != null ? imageType.hashCode() : 0);
+    result = 31 * result + (int) (size ^ (size >>> 32));
+    return result;
+  }
 
-    @Override
-    public String toString() {
-        return "UploadedMedia{" +
-                "mediaId=" + mediaId +
-                ", imageWidth=" + imageWidth + 
-                ", imageHeight=" + imageHeight +
-                ", imageType='" + imageType + '\'' +
-                ", size=" + size +
-                '}';
-    }
+  @Override
+  public String toString() {
+    return "UploadedMedia{" +
+        "mediaId=" + mediaId +
+        ", imageWidth=" + imageWidth +
+        ", imageHeight=" + imageHeight +
+        ", imageType='" + imageType + '\'' +
+        ", size=" + size +
+        '}';
+  }
 }
