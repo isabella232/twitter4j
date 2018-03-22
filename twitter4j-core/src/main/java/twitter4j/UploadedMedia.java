@@ -89,7 +89,6 @@ public final class UploadedMedia implements java.io.Serializable {
         processingState = Optional.ofNullable(ParseUtil.getUnescapedString("state", processingInfo));
         processingCheckAfterSecs = Optional.ofNullable(ParseUtil.getInt("check_after_secs", processingInfo));
         progressPercent = Optional.ofNullable(ParseUtil.getInt("progress_percent", processingInfo));
-
       }
 
     } catch (JSONException jsone) {
