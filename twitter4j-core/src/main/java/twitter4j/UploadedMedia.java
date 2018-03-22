@@ -15,6 +15,8 @@
  */
 package twitter4j;
 
+import java.util.Optional;
+
 /**
  * Represents result of "/1.1/media/upload.json"
  *
@@ -30,9 +32,10 @@ public final class UploadedMedia implements java.io.Serializable {
   private String imageType;
   private long mediaId;
   private long size;
-  private String processingState;
-  private int processingCheckAfterSecs;
-  private int progressPercent;
+
+  private Optional<String> processingState = Optional.empty();
+  private Optional<Integer> processingCheckAfterSecs = Optional.empty();
+  private Optional<Integer> progressPercent = Optional.empty();
 
   /*package*/ UploadedMedia(JSONObject json) throws TwitterException {
     init(json);
@@ -58,15 +61,15 @@ public final class UploadedMedia implements java.io.Serializable {
     return size;
   }
 
-  public String getProcessingState() {
+  public Optional<String> getProcessingState() {
     return processingState;
   }
 
-  public int getProcessingCheckAfterSecs() {
+  public Optional<Integer> getProcessingCheckAfterSecs() {
     return processingCheckAfterSecs;
   }
 
-  public int getProgressPercent() {
+  public Optional<Integer> getProgressPercent() {
     return progressPercent;
   }
 
@@ -83,9 +86,9 @@ public final class UploadedMedia implements java.io.Serializable {
 
       if (!json.isNull("processing_info")) {
         JSONObject processingInfo = json.getJSONObject("processing_info");
-        processingState = ParseUtil.getUnescapedString("state", processingInfo);
-        processingCheckAfterSecs = ParseUtil.getInt("check_after_secs", processingInfo);
-        progressPercent = ParseUtil.getInt("progress_percent", processingInfo);
+        processingState = Optional.ofNullable(ParseUtil.getUnescapedString("state", processingInfo));
+        processingCheckAfterSecs = Optional.ofNullable(ParseUtil.getInt("check_after_secs", processingInfo));
+        progressPercent = Optional.ofNullable(ParseUtil.getInt("progress_percent", processingInfo));
 
       }
 

@@ -16,10 +16,18 @@
 
 package twitter4j.api;
 
-import twitter4j.*;
-
 import java.io.File;
 import java.io.InputStream;
+
+import twitter4j.IDs;
+import twitter4j.TweetMediaType;
+import twitter4j.OEmbed;
+import twitter4j.OEmbedRequest;
+import twitter4j.ResponseList;
+import twitter4j.Status;
+import twitter4j.StatusUpdate;
+import twitter4j.TwitterException;
+import twitter4j.UploadedMedia;
 
 /**
  * @author Joern Huxhorn - jhuxhorn at googlemail.com
@@ -189,12 +197,14 @@ public interface TweetsResources {
      *
      * @param fileName media file name
      * @param media media body as stream
+     * @param mimeType e.g. MIME type (aka media_type) of media (e.g. video/mp4)
+     * @param tweetMediaType generally IMAGE or VIDEO. Enables advanced features like tracking video duration.
      * @return upload result
      * @throws TwitterException when Twitter service or network is unavailable
      * @see <a href="https://dev.twitter.com/rest/public/uploading-media#chunkedupload">Uploading Media | Twitter Developers</a>
      * @see <a href="https://dev.twitter.com/docs/api/1.1/post/statuses/update">POST statuses/update | Twitter Developers</a>
      * @see <a href="https://dev.twitter.com/docs/api/multiple-media-extended-entities">Multiple Media Entities in Statuses</a>
-     * @since Twitter4J 4.0.3
+     * @since HubSpot/Twitter4J 4.0.8
      */
-    UploadedMedia uploadMediaChunked(String fileName, InputStream media) throws TwitterException;
+    UploadedMedia uploadMediaChunked(String fileName, InputStream media, String mimeType, TweetMediaType tweetMediaType) throws TwitterException;
 }
