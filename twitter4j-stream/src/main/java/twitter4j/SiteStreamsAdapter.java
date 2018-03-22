@@ -99,6 +99,10 @@ public class SiteStreamsAdapter implements SiteStreamsListener {
     }
 
     @Override
+    public void onQuotedTweet(User source, User target, Status quotedStatus) {
+    }
+
+    @Override
     public void onDisconnectionNotice(String screenName) {
     }
 

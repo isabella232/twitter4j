@@ -16,16 +16,16 @@
 
 package twitter4j;
 
-import junit.framework.Assert;
-import twitter4j.conf.Configuration;
-import twitter4j.conf.ConfigurationContext;
-import twitter4j.conf.PropertyConfiguration;
-
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+
+import junit.framework.Assert;
+import twitter4j.conf.Configuration;
+import twitter4j.conf.ConfigurationContext;
+import twitter4j.conf.PropertyConfiguration;
 
 /**
  * @author Yusuke Yamamoto - yusuke at mac.com
@@ -420,6 +420,15 @@ public class SiteStreamsTest extends TwitterTestBase implements SiteStreamsListe
         Assert.assertNotNull(TwitterObjectFactory.getRawJSON(source));
         Assert.assertNotNull(TwitterObjectFactory.getRawJSON(target));
         Assert.assertNotNull(TwitterObjectFactory.getRawJSON(favoritedStatus));
+        notifyResponse();
+    }
+
+    @Override
+    public void onQuotedTweet(User source, User target, Status quotedStatus) {
+        received.add(new Object[]{"quoted_tweet", source, target, quotedStatus});
+        Assert.assertNotNull(TwitterObjectFactory.getRawJSON(source));
+        Assert.assertNotNull(TwitterObjectFactory.getRawJSON(target));
+        Assert.assertNotNull(TwitterObjectFactory.getRawJSON(quotedStatus));
         notifyResponse();
     }
 

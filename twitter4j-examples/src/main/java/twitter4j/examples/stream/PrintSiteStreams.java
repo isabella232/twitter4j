@@ -218,6 +218,14 @@ public final class PrintSiteStreams {
         }
 
         @Override
+        public void onQuotedTweet(User source, User target, Status quotedStatus) {
+            System.out.println("onQuotedTweet source:" + source.getScreenName()
+                + " target:@" + target.getScreenName()
+                + " quotedStatus:@" + quotedStatus.getUser().getScreenName() + " - "
+                + quotedStatus.getText());
+        }
+
+        @Override
         public void onDisconnectionNotice(String line) {
             System.out.println("onDisconnectionNotice:" + line);
         }
