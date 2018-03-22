@@ -16,10 +16,10 @@
 
 package twitter4j;
 
-import twitter4j.conf.Configuration;
-
 import java.io.IOException;
 import java.io.InputStream;
+
+import twitter4j.conf.Configuration;
 
 /**
  * @author Yusuke Yamamoto - yusuke at mac.com
@@ -264,6 +264,13 @@ final class SiteStreamsImpl extends StatusStreamBase {
     void onFavoritedRetweet(JSONObject source, JSONObject target, JSONObject targetObject, StreamListener[] listeners) throws TwitterException {
         for (StreamListener listener : listeners) {
             ((SiteStreamsListener) listener).onFavoritedRetweet(asUser(source), asUser(target), asStatus(targetObject));
+        }
+    }
+
+    @Override
+    void onQuotedTweet(JSONObject source, JSONObject target, JSONObject targetObject, StreamListener[] listeners) throws TwitterException {
+        for (StreamListener listener : listeners) {
+            ((SiteStreamsListener) listener).onQuotedTweet(asUser(source), asUser(target), asStatus(targetObject));
         }
     }
 

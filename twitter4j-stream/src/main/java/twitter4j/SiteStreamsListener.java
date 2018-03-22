@@ -164,7 +164,7 @@ public interface SiteStreamsListener extends StreamListener {
      * @param retweetedStatus status retweeted retweet
      * @since Twitter4J 4.0.x
      */
-    void onRetweetedRetweet(User source,User target, Status retweetedStatus);
+    void onRetweetedRetweet(User source, User target, Status retweetedStatus);
 
     /**
      * @param source          source user of the event
@@ -172,7 +172,15 @@ public interface SiteStreamsListener extends StreamListener {
      * @param favoritedStatus status favorited retweet
      * @since Twitter4J 4.0.x
      */
-    void onFavoritedRetweet(User source,User target, Status favoritedStatus);
+    void onFavoritedRetweet(User source, User target, Status favoritedStatus);
+
+    /**
+     * @param source          source user of the event
+     * @param target          target user of the event
+     * @param quotedStatus    status quoted tweet
+     * @since HubSpot/Twitter4j 4.0.8
+     */
+    void onQuotedTweet(User source, User target, Status quotedStatus);
 
     /**
      * callback method for {@link StreamController#removeUsers(long[])}
