@@ -16,9 +16,9 @@
 
 package twitter4j;
 
-import java.util.List;
-
 import static twitter4j.ParseUtil.getInt;
+
+import java.util.List;
 
 /**
  * An exception class that will be thrown when TwitterAPI calls are failed.<br>
@@ -146,7 +146,7 @@ public class TwitterException extends Exception implements TwitterResponse, Http
             if (rateLimitStatus != null) {
                 retryAfter = rateLimitStatus.getSecondsUntilReset();
             }
-        } else if (this.statusCode == ENHANCE_YOUR_CLAIM) {
+        } else if (this.statusCode == ENHANCE_YOUR_CALM) {
             try {
                 String retryAfterStr = response.getResponseHeader("Retry-After");
                 if (retryAfterStr != null) {
@@ -177,7 +177,7 @@ public class TwitterException extends Exception implements TwitterResponse, Http
      */
     public boolean exceededRateLimitation() {
         return (statusCode == 400 && getRateLimitStatus() != null) // REST API
-                || (statusCode == ENHANCE_YOUR_CLAIM) // Streaming API
+                || (statusCode == ENHANCE_YOUR_CALM) // Streaming API
                 || (statusCode == TOO_MANY_REQUESTS); // API 1.1
     }
 
@@ -271,9 +271,7 @@ public class TwitterException extends Exception implements TwitterResponse, Http
 
     @Override
     public String toString() {
-        return getMessage() + (nested ? "" : "\nRelevant discussions can be found on the Internet at:\n"
-                + "\thttp://www.google.co.jp/search?q=" + getExceptionDiagnosis().getStackLineHashAsHex()
-                + " or\n\thttp://www.google.co.jp/search?q=" + getExceptionDiagnosis().getLineNumberHashAsHex())
+        return getMessage()
                 + "\nTwitterException{" + (nested ? "" : "exceptionCode=[" + getExceptionCode() + "], ") +
                 "statusCode=" + statusCode +
                 ", message=" + errorMessage +
@@ -286,44 +284,39 @@ public class TwitterException extends Exception implements TwitterResponse, Http
 
     private static String getCause(int statusCode) {
         String cause;
-        // https://dev.twitter.com/docs/error-codes-responses
         switch (statusCode) {
             case NOT_MODIFIED:
                 cause = "There was no new data to return.";
                 break;
             case BAD_REQUEST:
-                cause = "The request was invalid. An accompanying error message will explain why. This is the status code will be returned during version 1.0 rate limiting(https://dev.twitter.com/pages/rate-limiting). In API v1.1, a request without authentication is considered invalid and you will get this response.";
+                cause = "The request was invalid. See error codes: https://developer.twitter.com/en/docs/basics/response-codes";
                 break;
             case UNAUTHORIZED:
-                cause = "Authentication credentials (https://dev.twitter.com/pages/auth) were missing or incorrect. Ensure that you have set valid consumer key/secret, access token/secret, and the system clock is in sync.";
+                cause = "Authentication credentials (created/viewed at https://apps.twitter.com/) were missing or incorrect. Ensure that you have set valid consumer key/secret, access token/secret, and the system clock is in sync.";
                 break;
             case FORBIDDEN:
-                cause = "The request is understood, but it has been refused. An accompanying error message will explain why. This code is used when requests are being denied due to update limits (https://support.twitter.com/articles/15364-about-twitter-limits-update-api-dm-and-following).";
+                cause = "Request refused. Possibly due to the user hitting a usage limit. See error codes: https://developer.twitter.com/en/docs/basics/response-codes";
                 break;
             case NOT_FOUND:
-                cause = "The URI requested is invalid or the resource requested, such as a user, does not exists. Also returned when the requested format is not supported by the requested method.";
+                cause = "The URI requested is invalid or the resource requested, such as a user, does not exist.";
                 break;
             case NOT_ACCEPTABLE:
-                cause = "Returned by the Search API when an invalid format is specified in the request.\n" +
-                        "Returned by the Streaming API when one or more of the parameters are not suitable for the resource. The track parameter, for example, would throw this error if:\n" +
-                        " The track keyword is too long or too short.\n" +
-                        " The bounding box specified is invalid.\n" +
-                        " No predicates defined for filtered resource, for example, neither track nor follow parameter defined.\n" +
-                        " Follow userid cannot be read.";
+                cause = "An invalid format was specified in the request.";
                 break;
-            case ENHANCE_YOUR_CLAIM:
-                cause = "Returned by the Search and Trends API when you are being rate limited (https://dev.twitter.com/docs/rate-limiting).\n"
-                        + "Returned by the Streaming API:\n Too many login attempts in a short period of time.\n" +
-                        " Running too many copies of the same application authenticating with the same account name.";
+            case GONE:
+                cause = "This API endpoint has been turned off.";
+                break;
+            case ENHANCE_YOUR_CALM:
+                cause = "Twitter rate limited the application (\"Enhance Your Calm\"). Rate Limit information: https://developer.twitter.com/en/docs/basics/rate-limiting.html";
                 break;
             case UNPROCESSABLE_ENTITY:
-                cause = "Returned when an image uploaded to POST account/update_profile_banner(https://dev.twitter.com/docs/api/1/post/account/update_profile_banner) is unable to be processed.";
+                cause = "Data was unable to be processed. Possibly due to badly-formed JSON or an invalid image.";
                 break;
             case TOO_MANY_REQUESTS:
-                cause = "Returned in API v1.1 when a request cannot be served due to the application's rate limit having been exhausted for the resource. See Rate Limiting in API v1.1.(https://dev.twitter.com/docs/rate-limiting/1.1)";
+                cause = "Twitter rate limited the user or application. Rate Limit information: https://developer.twitter.com/en/docs/basics/rate-limiting.html";
                 break;
             case INTERNAL_SERVER_ERROR:
-                cause = "Something is broken. Please post to the group (https://dev.twitter.com/docs/support) so the Twitter team can investigate.";
+                cause = "Twitter had a server error. Please post to the group at https://twittercommunity.com/ so the Twitter team can investigate.";
                 break;
             case BAD_GATEWAY:
                 cause = "Twitter is down or being upgraded.";
@@ -335,7 +328,7 @@ public class TwitterException extends Exception implements TwitterResponse, Http
                 cause = "The Twitter servers are up, but the request couldn't be serviced due to some failure within our stack. Try again later.";
                 break;
             default:
-                cause = "";
+                cause = "Unrecognized Twitter status code.";
         }
         return statusCode + ":" + cause;
     }

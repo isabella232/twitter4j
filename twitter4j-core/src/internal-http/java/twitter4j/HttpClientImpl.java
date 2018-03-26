@@ -157,7 +157,7 @@ class HttpClientImpl extends HttpClientBase implements HttpResponseCode, java.io
                         }
                     }
                     if (responseCode < OK || (responseCode != FOUND && MULTIPLE_CHOICES <= responseCode)) {
-                        if (responseCode == ENHANCE_YOUR_CLAIM ||
+                        if (responseCode == ENHANCE_YOUR_CALM ||
                                 responseCode == BAD_REQUEST ||
                                 responseCode < INTERNAL_SERVER_ERROR ||
                                 retriedCount == CONF.getHttpRetryCount()) {
