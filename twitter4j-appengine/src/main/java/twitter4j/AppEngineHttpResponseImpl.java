@@ -15,15 +15,26 @@
  */
 package twitter4j;
 
-import com.google.appengine.api.urlfetch.HTTPHeader;
-import com.google.appengine.api.urlfetch.HTTPResponse;
-import twitter4j.conf.ConfigurationContext;
-
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.zip.GZIPInputStream;
+
+import com.google.appengine.api.urlfetch.HTTPHeader;
+import com.google.appengine.api.urlfetch.HTTPResponse;
+
+import twitter4j.conf.ConfigurationContext;
 
 /**
  * @author Takao Nakaguchi - takao.nakaguchi at gmail.com
@@ -133,7 +144,7 @@ final class AppEngineHttpResponseImpl extends HttpResponse implements HttpRespon
             }
             responseAsString = inputStreamToString(is);
             if (statusCode < OK || (statusCode != FOUND && MULTIPLE_CHOICES <= statusCode)) {
-                if (statusCode == ENHANCE_YOUR_CLAIM ||
+                if (statusCode == ENHANCE_YOUR_CALM ||
                         statusCode == BAD_REQUEST ||
                         statusCode < INTERNAL_SERVER_ERROR) {
                     th = new TwitterException(responseAsString, null, statusCode);

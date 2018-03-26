@@ -186,7 +186,7 @@ abstract class TwitterBaseImpl implements TwitterBase, java.io.Serializable, OAu
             if (rateLimitStatus != null) {
                 RateLimitStatusEvent statusEvent
                         = new RateLimitStatusEvent(this, rateLimitStatus, event.isAuthenticated());
-                if (statusCode == ENHANCE_YOUR_CLAIM
+                if (statusCode == ENHANCE_YOUR_CALM
                         || statusCode == SERVICE_UNAVAILABLE
                         || statusCode == TOO_MANY_REQUESTS) {
                     // EXCEEDED_RATE_LIMIT_QUOTA is returned by Rest API
