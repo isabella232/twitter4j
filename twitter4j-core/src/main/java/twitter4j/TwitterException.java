@@ -307,13 +307,13 @@ public class TwitterException extends Exception implements TwitterResponse, Http
                 cause = "This API endpoint has been turned off.";
                 break;
             case ENHANCE_YOUR_CALM:
-                cause = "Twitter rate limited the application (\"Enhance Your Calm\"). Rate Limit information: https://developer.twitter.com/en/docs/basics/rate-limiting.html";
+                cause = "Twitter rate limited the application (\"Enhance Your Calm\"). Rate Limit information: https://developer.twitter.com/en/docs/basics/rate-limiting.html -- https://developer.twitter.com/en/docs/basics/rate-limits";
                 break;
             case UNPROCESSABLE_ENTITY:
                 cause = "Data was unable to be processed. Possibly due to badly-formed JSON or an invalid image.";
                 break;
             case TOO_MANY_REQUESTS:
-                cause = "Twitter rate limited the user or application. Rate Limit information: https://developer.twitter.com/en/docs/basics/rate-limiting.html";
+                cause = "Twitter rate limited the user or application. Rate Limit information: https://developer.twitter.com/en/docs/basics/rate-limiting.html -- https://developer.twitter.com/en/docs/basics/rate-limits";
                 break;
             case INTERNAL_SERVER_ERROR:
                 cause = "Twitter had a server error. Please post to the group at https://twittercommunity.com/ so the Twitter team can investigate.";
