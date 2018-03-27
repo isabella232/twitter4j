@@ -16,12 +16,13 @@
 
 package twitter4j;
 
-import twitter4j.conf.Configuration;
+import static twitter4j.ParseUtil.getDate;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Objects;
 
-import static twitter4j.ParseUtil.getDate;
+import twitter4j.conf.Configuration;
 
 /**
  * A data class representing one single status of a user.
@@ -301,6 +302,11 @@ import static twitter4j.ParseUtil.getDate;
     }
 
     @Override
+    public String getIdString() {
+        return Objects.toString(getId());
+    }
+
+    @Override
     public String getText() {
         return this.text;
     }
@@ -332,8 +338,18 @@ import static twitter4j.ParseUtil.getDate;
     }
 
     @Override
+    public String getInReplyToStatusIdString() {
+        return Objects.toString(getInReplyToStatusId(), "");
+    }
+
+    @Override
     public long getInReplyToUserId() {
         return inReplyToUserId;
+    }
+
+    @Override
+    public String getInReplyToUserIdString() {
+        return Objects.toString(getInReplyToUserId(), "");
     }
 
     @Override
@@ -402,6 +418,11 @@ import static twitter4j.ParseUtil.getDate;
     }
 
     @Override
+    public String getCurrentUserRetweetIdString() {
+        return Objects.toString(getCurrentUserRetweetId(), "");
+    }
+
+    @Override
     public boolean isPossiblySensitive() {
         return isPossiblySensitive;
     }
@@ -444,6 +465,11 @@ import static twitter4j.ParseUtil.getDate;
     @Override
     public long getQuotedStatusId() {
         return quotedStatusId;
+    }
+
+    @Override
+    public String getQuotedStatusIdString() {
+        return Objects.toString(getQuotedStatusId(), "");
     }
 
     @Override

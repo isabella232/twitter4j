@@ -16,8 +16,9 @@
 
 package twitter4j;
 
-import javax.annotation.Generated;
 import java.util.Date;
+
+import javax.annotation.Generated;
 
 /**
  * A data class representing one single status of a user.
@@ -69,6 +70,10 @@ final class LazyStatus implements twitter4j.Status {
      */
     public long getId() {
         return getTarget().getId();
+    }
+
+    public String getIdString() {
+        return getTarget().getIdString();
     }
 
 
@@ -123,6 +128,10 @@ final class LazyStatus implements twitter4j.Status {
         return getTarget().getInReplyToStatusId();
     }
 
+    public String getInReplyToStatusIdString() {
+        return getTarget().getInReplyToStatusIdString();
+    }
+
 
     /**
      * Returns the in_reply_user_id
@@ -132,6 +141,10 @@ final class LazyStatus implements twitter4j.Status {
      */
     public long getInReplyToUserId() {
         return getTarget().getInReplyToUserId();
+    }
+
+    public String getInReplyToUserIdString() {
+        return getTarget().getInReplyToUserIdString();
     }
 
 
@@ -268,6 +281,10 @@ final class LazyStatus implements twitter4j.Status {
         return getTarget().getCurrentUserRetweetId();
     }
 
+    public String getCurrentUserRetweetIdString() {
+        return getTarget().getCurrentUserRetweetIdString();
+    }
+
     @Override
     public boolean isPossiblySensitive() {
         return getTarget().isPossiblySensitive();
@@ -339,6 +356,10 @@ final class LazyStatus implements twitter4j.Status {
     @Override
     public long getQuotedStatusId() {
         return getTarget().getQuotedStatusId();
+    }
+
+    public String getQuotedStatusIdString() {
+        return getTarget().getQuotedStatusIdString();
     }
 
     @Override
