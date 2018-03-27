@@ -16,10 +16,10 @@
 
 package twitter4j;
 
-import twitter4j.conf.Configuration;
-
 import java.util.Arrays;
 import java.util.Date;
+
+import twitter4j.conf.Configuration;
 
 /**
  * A data class representing Basic user information element
@@ -30,6 +30,7 @@ import java.util.Date;
 
     private static final long serialVersionUID = -5448266606847617015L;
     private long id;
+    private String idString;
     private String name;
     private String email;
     private String screenName;
@@ -98,6 +99,7 @@ import java.util.Date;
     private void init(JSONObject json) throws TwitterException {
         try {
             id = ParseUtil.getLong("id", json);
+            idString = ParseUtil.getRawString("id", json);
             name = ParseUtil.getRawString("name", json);
             email = ParseUtil.getRawString("email", json);
             screenName = ParseUtil.getRawString("screen_name", json);
@@ -204,6 +206,11 @@ import java.util.Date;
     @Override
     public long getId() {
         return id;
+    }
+
+    @Override
+    public String getIdString() {
+        return idString;
     }
 
     @Override

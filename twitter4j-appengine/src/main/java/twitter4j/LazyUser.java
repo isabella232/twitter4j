@@ -16,10 +16,11 @@
 
 package twitter4j;
 
-import twitter4j.conf.Configuration;
+import java.util.Date;
 
 import javax.annotation.Generated;
-import java.util.Date;
+
+import twitter4j.conf.Configuration;
 
 /**
  * A data class representing Basic user information element
@@ -59,6 +60,10 @@ final class LazyUser implements twitter4j.User {
      */
     public long getId() {
         return getTarget().getId();
+    }
+
+    public String getIdString() {
+        return getTarget().getIdString();
     }
 
 

@@ -40,6 +40,7 @@ public interface Status extends Comparable<Status>, TwitterResponse,
      * @return the id (e.g. 210462857140252672)
      */
     long getId();
+    String getIdString();
 
     /**
      * Returns the text of the status
@@ -60,7 +61,6 @@ public interface Status extends Comparable<Status>, TwitterResponse,
      */
     String getSource();
 
-
     /**
      * Test if the status is truncated
      *
@@ -76,6 +76,7 @@ public interface Status extends Comparable<Status>, TwitterResponse,
      * @since Twitter4J 1.0.4
      */
     long getInReplyToStatusId();
+    String getInReplyToStatusIdString();
 
     /**
      * Returns the in_reply_user_id
@@ -84,6 +85,7 @@ public interface Status extends Comparable<Status>, TwitterResponse,
      * @since Twitter4J 1.0.4
      */
     long getInReplyToUserId();
+    String getInReplyToUserIdString();
 
     /**
      * Returns the in_reply_to_screen_name
@@ -186,6 +188,7 @@ public interface Status extends Comparable<Status>, TwitterResponse,
      * @since Twitter4J 3.0.1
      */
     long getCurrentUserRetweetId();
+    String getCurrentUserRetweetIdString();
 
     /**
      * Returns true if the status contains a link that is identified as sensitive.
@@ -226,6 +229,7 @@ public interface Status extends Comparable<Status>, TwitterResponse,
      * @since Twitter4J 4.0.4
      */
     long getQuotedStatusId();
+    String getQuotedStatusIdString();
 
     /**
      * Returns the Tweet object of the original Tweet that was quoted.

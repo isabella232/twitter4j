@@ -16,12 +16,12 @@
 
 package twitter4j;
 
-import twitter4j.conf.Configuration;
+import static twitter4j.ParseUtil.getDate;
 
 import java.util.Arrays;
 import java.util.Date;
 
-import static twitter4j.ParseUtil.getDate;
+import twitter4j.conf.Configuration;
 
 /**
  * A data class representing one single status of a user.
@@ -34,13 +34,16 @@ import static twitter4j.ParseUtil.getDate;
 
     private Date createdAt;
     private long id;
+    private String idString;
     private String text;
     private int displayTextRangeStart = -1;
     private int displayTextRangeEnd = -1;
     private String source;
     private boolean isTruncated;
     private long inReplyToStatusId;
+    private String inReplyToStatusIdString;
     private long inReplyToUserId;
+    private String inReplyToUserIdString;
     private boolean isFavorited;
     private boolean isRetweeted;
     private int favoriteCount;
@@ -61,11 +64,13 @@ import static twitter4j.ParseUtil.getDate;
     private MediaEntity[] mediaEntities;
     private SymbolEntity[] symbolEntities;
     private long currentUserRetweetId = -1L;
+    private String currentUserRetweetIdString = "-1";
     private Scopes scopes;
     private User user = null;
     private String[] withheldInCountries = null;
     private Status quotedStatus;
     private long quotedStatusId = -1L;
+    private String quotedStatusIdString = "-1";
 
     /*package*/StatusJSONImpl(HttpResponse res, Configuration conf) throws TwitterException {
         super(res);
@@ -97,11 +102,14 @@ import static twitter4j.ParseUtil.getDate;
 
     private void init(JSONObject json) throws TwitterException {
         id = ParseUtil.getLong("id", json);
+        idString = ParseUtil.getUnescapedString("id", json);
         source = ParseUtil.getUnescapedString("source", json);
         createdAt = getDate("created_at", json);
         isTruncated = ParseUtil.getBoolean("truncated", json);
         inReplyToStatusId = ParseUtil.getLong("in_reply_to_status_id", json);
+        inReplyToStatusIdString = ParseUtil.getUnescapedString("in_reply_to_status_id", json);
         inReplyToUserId = ParseUtil.getLong("in_reply_to_user_id", json);
+        inReplyToUserIdString = ParseUtil.getUnescapedString("in_reply_to_user_id", json);
         isFavorited = ParseUtil.getBoolean("favorited", json);
         isRetweeted = ParseUtil.getBoolean("retweeted", json);
         inReplyToScreenName = ParseUtil.getUnescapedString("in_reply_to_screen_name", json);
@@ -137,6 +145,7 @@ import static twitter4j.ParseUtil.getDate;
             }
             if (!json.isNull("quoted_status_id")) {
                 quotedStatusId = ParseUtil.getLong("quoted_status_id", json);
+                quotedStatusIdString = ParseUtil.getUnescapedString("quoted_status_id", json);
             }
             if (!json.isNull("display_text_range")) {
                 JSONArray indicesArray = json.getJSONArray("display_text_range");
@@ -164,6 +173,7 @@ import static twitter4j.ParseUtil.getDate;
 
             if (!json.isNull("current_user_retweet")) {
                 currentUserRetweetId = json.getJSONObject("current_user_retweet").getLong("id");
+                currentUserRetweetIdString = json.getJSONObject("current_user_retweet").getString("id");
             }
             if (!json.isNull("lang")) {
                 lang = ParseUtil.getUnescapedString("lang", json);
@@ -300,6 +310,10 @@ import static twitter4j.ParseUtil.getDate;
         return this.id;
     }
 
+    public String getIdString() {
+        return this.idString;
+    }
+
     @Override
     public String getText() {
         return this.text;
@@ -332,8 +346,18 @@ import static twitter4j.ParseUtil.getDate;
     }
 
     @Override
+    public String getInReplyToStatusIdString() {
+        return inReplyToStatusIdString;
+    }
+
+    @Override
     public long getInReplyToUserId() {
         return inReplyToUserId;
+    }
+
+    @Override
+    public String getInReplyToUserIdString() {
+        return inReplyToUserIdString;
     }
 
     @Override
@@ -402,6 +426,11 @@ import static twitter4j.ParseUtil.getDate;
     }
 
     @Override
+    public String getCurrentUserRetweetIdString() {
+        return currentUserRetweetIdString;
+    }
+
+    @Override
     public boolean isPossiblySensitive() {
         return isPossiblySensitive;
     }
@@ -444,6 +473,11 @@ import static twitter4j.ParseUtil.getDate;
     @Override
     public long getQuotedStatusId() {
         return quotedStatusId;
+    }
+
+    @Override
+    public String getQuotedStatusIdString() {
+        return quotedStatusIdString;
     }
 
     @Override
