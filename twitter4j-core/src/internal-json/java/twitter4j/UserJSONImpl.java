@@ -18,6 +18,7 @@ package twitter4j;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Objects;
 
 import twitter4j.conf.Configuration;
 
@@ -30,7 +31,6 @@ import twitter4j.conf.Configuration;
 
     private static final long serialVersionUID = -5448266606847617015L;
     private long id;
-    private String idString;
     private String name;
     private String email;
     private String screenName;
@@ -99,7 +99,6 @@ import twitter4j.conf.Configuration;
     private void init(JSONObject json) throws TwitterException {
         try {
             id = ParseUtil.getLong("id", json);
-            idString = ParseUtil.getRawString("id", json);
             name = ParseUtil.getRawString("name", json);
             email = ParseUtil.getRawString("email", json);
             screenName = ParseUtil.getRawString("screen_name", json);
@@ -210,7 +209,7 @@ import twitter4j.conf.Configuration;
 
     @Override
     public String getIdString() {
-        return idString;
+        return Objects.toString(getId());
     }
 
     @Override

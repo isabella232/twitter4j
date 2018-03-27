@@ -20,6 +20,7 @@ import static twitter4j.ParseUtil.getDate;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Objects;
 
 import twitter4j.conf.Configuration;
 
@@ -34,16 +35,13 @@ import twitter4j.conf.Configuration;
 
     private Date createdAt;
     private long id;
-    private String idString;
     private String text;
     private int displayTextRangeStart = -1;
     private int displayTextRangeEnd = -1;
     private String source;
     private boolean isTruncated;
     private long inReplyToStatusId;
-    private String inReplyToStatusIdString;
     private long inReplyToUserId;
-    private String inReplyToUserIdString;
     private boolean isFavorited;
     private boolean isRetweeted;
     private int favoriteCount;
@@ -64,13 +62,11 @@ import twitter4j.conf.Configuration;
     private MediaEntity[] mediaEntities;
     private SymbolEntity[] symbolEntities;
     private long currentUserRetweetId = -1L;
-    private String currentUserRetweetIdString = "-1";
     private Scopes scopes;
     private User user = null;
     private String[] withheldInCountries = null;
     private Status quotedStatus;
     private long quotedStatusId = -1L;
-    private String quotedStatusIdString = "-1";
 
     /*package*/StatusJSONImpl(HttpResponse res, Configuration conf) throws TwitterException {
         super(res);
@@ -102,14 +98,11 @@ import twitter4j.conf.Configuration;
 
     private void init(JSONObject json) throws TwitterException {
         id = ParseUtil.getLong("id", json);
-        idString = ParseUtil.getUnescapedString("id", json);
         source = ParseUtil.getUnescapedString("source", json);
         createdAt = getDate("created_at", json);
         isTruncated = ParseUtil.getBoolean("truncated", json);
         inReplyToStatusId = ParseUtil.getLong("in_reply_to_status_id", json);
-        inReplyToStatusIdString = ParseUtil.getUnescapedString("in_reply_to_status_id", json);
         inReplyToUserId = ParseUtil.getLong("in_reply_to_user_id", json);
-        inReplyToUserIdString = ParseUtil.getUnescapedString("in_reply_to_user_id", json);
         isFavorited = ParseUtil.getBoolean("favorited", json);
         isRetweeted = ParseUtil.getBoolean("retweeted", json);
         inReplyToScreenName = ParseUtil.getUnescapedString("in_reply_to_screen_name", json);
@@ -145,7 +138,6 @@ import twitter4j.conf.Configuration;
             }
             if (!json.isNull("quoted_status_id")) {
                 quotedStatusId = ParseUtil.getLong("quoted_status_id", json);
-                quotedStatusIdString = ParseUtil.getUnescapedString("quoted_status_id", json);
             }
             if (!json.isNull("display_text_range")) {
                 JSONArray indicesArray = json.getJSONArray("display_text_range");
@@ -173,7 +165,6 @@ import twitter4j.conf.Configuration;
 
             if (!json.isNull("current_user_retweet")) {
                 currentUserRetweetId = json.getJSONObject("current_user_retweet").getLong("id");
-                currentUserRetweetIdString = json.getJSONObject("current_user_retweet").getString("id");
             }
             if (!json.isNull("lang")) {
                 lang = ParseUtil.getUnescapedString("lang", json);
@@ -310,8 +301,9 @@ import twitter4j.conf.Configuration;
         return this.id;
     }
 
+    @Override
     public String getIdString() {
-        return this.idString;
+        return Objects.toString(getId());
     }
 
     @Override
@@ -347,7 +339,7 @@ import twitter4j.conf.Configuration;
 
     @Override
     public String getInReplyToStatusIdString() {
-        return inReplyToStatusIdString;
+        return Objects.toString(getInReplyToStatusIdString(), "");
     }
 
     @Override
@@ -357,7 +349,7 @@ import twitter4j.conf.Configuration;
 
     @Override
     public String getInReplyToUserIdString() {
-        return inReplyToUserIdString;
+        return Objects.toString(getInReplyToUserIdString(), "");
     }
 
     @Override
@@ -427,7 +419,7 @@ import twitter4j.conf.Configuration;
 
     @Override
     public String getCurrentUserRetweetIdString() {
-        return currentUserRetweetIdString;
+        return Objects.toString(getCurrentUserRetweetIdString(), "");
     }
 
     @Override
@@ -477,7 +469,7 @@ import twitter4j.conf.Configuration;
 
     @Override
     public String getQuotedStatusIdString() {
-        return quotedStatusIdString;
+        return Objects.toString(getQuotedStatusIdString(), "");
     }
 
     @Override
