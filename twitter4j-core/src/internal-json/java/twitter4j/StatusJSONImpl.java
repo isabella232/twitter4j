@@ -339,7 +339,7 @@ import twitter4j.conf.Configuration;
 
     @Override
     public String getInReplyToStatusIdString() {
-        return Objects.toString(getInReplyToStatusIdString(), "");
+        return Objects.toString(getInReplyToStatusId(), "");
     }
 
     @Override
@@ -349,7 +349,7 @@ import twitter4j.conf.Configuration;
 
     @Override
     public String getInReplyToUserIdString() {
-        return Objects.toString(getInReplyToUserIdString(), "");
+        return Objects.toString(getInReplyToUserId(), "");
     }
 
     @Override
@@ -419,7 +419,7 @@ import twitter4j.conf.Configuration;
 
     @Override
     public String getCurrentUserRetweetIdString() {
-        return Objects.toString(getCurrentUserRetweetIdString(), "");
+        return Objects.toString(getCurrentUserRetweetId(), "");
     }
 
     @Override
@@ -469,7 +469,7 @@ import twitter4j.conf.Configuration;
 
     @Override
     public String getQuotedStatusIdString() {
-        return Objects.toString(getQuotedStatusIdString(), "");
+        return Objects.toString(getQuotedStatusId(), "");
     }
 
     @Override
