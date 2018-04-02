@@ -22,6 +22,7 @@ package twitter4j;
  */
 public interface Friendship extends java.io.Serializable {
     long getId();
+    String getIdString();
 
     String getName();
 

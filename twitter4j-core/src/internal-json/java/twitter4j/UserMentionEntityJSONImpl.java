@@ -16,6 +16,8 @@
 
 package twitter4j;
 
+import java.util.Objects;
+
 /**
  * A data interface representing one single user mention entity.
  *
@@ -83,6 +85,11 @@ package twitter4j;
     @Override
     public long getId() {
         return id;
+    }
+
+    @Override
+    public String getIdString() {
+        return Objects.toString(getId());
     }
 
     @Override

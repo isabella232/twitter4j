@@ -17,6 +17,7 @@ package twitter4j;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Yusuke Yamamoto - yusuke at mac.com
@@ -106,6 +107,11 @@ public class MediaEntityJSONImpl extends EntityIndex implements MediaEntity {
     @Override
     public long getId() {
         return id;
+    }
+
+    @Override
+    public String getIdString() {
+        return Objects.toString(getId());
     }
 
     @Override

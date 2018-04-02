@@ -61,6 +61,10 @@ final class LazyRelationship implements twitter4j.Relationship {
         return getTarget().getSourceUserId();
     }
 
+    public String getSourceUserIdString() {
+        return getTarget().getSourceUserIdString();
+    }
+
 
     /**
      * Returns the target user id
@@ -69,6 +73,10 @@ final class LazyRelationship implements twitter4j.Relationship {
      */
     public long getTargetUserId() {
         return getTarget().getTargetUserId();
+    }
+
+    public String getTargetUserIdString() {
+        return getTarget().getTargetUserIdString();
     }
 
 

@@ -16,6 +16,8 @@
 
 package twitter4j;
 
+import java.util.Objects;
+
 import twitter4j.conf.Configuration;
 
 /**
@@ -107,8 +109,18 @@ import twitter4j.conf.Configuration;
     }
 
     @Override
+    public String getSourceUserIdString() {
+        return Objects.toString(getSourceUserId());
+    }
+
+    @Override
     public long getTargetUserId() {
         return targetUserId;
+    }
+
+    @Override
+    public String getTargetUserIdString() {
+        return Objects.toString(getTargetUserId());
     }
 
     @Override
