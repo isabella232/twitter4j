@@ -53,6 +53,7 @@ public interface UserMentionEntity extends TweetEntity, Serializable {
      * @return the user id mentioned in the status
      */
     long getId();
+    String getIdString();
 
     /**
      * Returns the index of the start character of the user mention.

@@ -16,6 +16,8 @@
 
 package twitter4j;
 
+import java.util.Objects;
+
 import twitter4j.conf.Configuration;
 
 /**
@@ -79,6 +81,11 @@ class FriendshipJSONImpl implements Friendship {
     @Override
     public long getId() {
         return id;
+    }
+
+    @Override
+    public String getIdString() {
+        return Objects.toString(getId());
     }
 
     @Override

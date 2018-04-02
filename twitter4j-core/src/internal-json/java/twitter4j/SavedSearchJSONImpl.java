@@ -16,9 +16,10 @@
 
 package twitter4j;
 
-import twitter4j.conf.Configuration;
-
 import java.util.Date;
+import java.util.Objects;
+
+import twitter4j.conf.Configuration;
 
 /**
  * A data class representing a Saved Search
@@ -113,6 +114,11 @@ import java.util.Date;
     @Override
     public long getId() {
         return id;
+    }
+
+    @Override
+    public String getIdString() {
+        return Objects.toString(getId());
     }
 
     @Override

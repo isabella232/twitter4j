@@ -16,8 +16,9 @@
 
 package twitter4j;
 
-import javax.annotation.Generated;
 import java.util.Date;
+
+import javax.annotation.Generated;
 
 /**
  * A data class representing a Saved Search
@@ -73,6 +74,10 @@ final class LazySavedSearch implements twitter4j.SavedSearch {
 
     public long getId() {
         return getTarget().getId();
+    }
+
+    public String getIdString() {
+        return getTarget().getIdString();
     }
 
 

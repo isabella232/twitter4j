@@ -28,6 +28,7 @@ public interface MediaEntity extends URLEntity {
      * @return the id of the media
      */
     long getId();
+    String getIdString();
 
     /**
      * Returns the media URL.
