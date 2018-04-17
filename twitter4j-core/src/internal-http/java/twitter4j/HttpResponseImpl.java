@@ -39,9 +39,13 @@ public class HttpResponseImpl extends HttpResponse {
            *
            * This causes an IOException in the getResponseCode() method call. See https://dev.twitter.com/issues/1114
            * This call can, however, me made a second time without exception.
+           *
+           * Twitter also throws an IOException for a 413 code, which is a valid (but undocumented) response code when a large entity is included
            */
             if ("Received authentication challenge is null".equals(e.getMessage())) {
                 this.statusCode = con.getResponseCode();
+            } else if (e.getMessage().contains("response code: 413")) {
+                this.statusCode = 413;
             } else {
                 throw e;
             }

@@ -16,13 +16,22 @@
 
 package twitter4j;
 
-import twitter4j.conf.ConfigurationContext;
-
-import java.io.*;
-import java.net.*;
+import java.io.BufferedInputStream;
+import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Authenticator;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.PasswordAuthentication;
+import java.net.Proxy;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import twitter4j.conf.ConfigurationContext;
 
 /**
  * @author Yusuke Yamamoto - yusuke at mac.com
@@ -141,7 +150,15 @@ class HttpClientImpl extends HttpClientBase implements HttpResponseCode, java.io
                         os.close();
                     }
                     res = new HttpResponseImpl(con, CONF);
-                    responseCode = con.getResponseCode();
+                    try {
+                        responseCode = con.getResponseCode();
+                    } catch (IOException codeIoException) {
+                        if (codeIoException.getMessage().contains("response code: 413")) {
+                            responseCode = 413;
+                        } else {
+                            throw codeIoException;
+                        }
+                    }
                     if (logger.isDebugEnabled()) {
                         logger.debug("Response: ");
                         Map<String, List<String>> responseHeaders = con.getHeaderFields();

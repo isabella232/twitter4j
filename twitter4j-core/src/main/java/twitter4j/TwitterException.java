@@ -43,7 +43,6 @@ public class TwitterException extends Exception implements TwitterResponse, Http
         this(message, (Throwable) null);
     }
 
-
     public TwitterException(Exception cause) {
         this(cause.getMessage(), cause);
         if (cause instanceof TwitterException) {
@@ -62,14 +61,18 @@ public class TwitterException extends Exception implements TwitterResponse, Http
         this.statusCode = statusCode;
     }
 
+    public TwitterException(String message, int errorCode) {
+        this(message);
+        this.errorMessage = message;
+        this.errorCode = errorCode;
+    }
+
     @Override
     public String getMessage() {
         StringBuilder value = new StringBuilder();
         if (errorMessage != null && errorCode != -1) {
-            value.append("message - ").append(errorMessage)
-                    .append("\n");
-            value.append("code - ").append(errorCode)
-                    .append("\n");
+            value.append("message - ").append(errorMessage).append("\n");
+            value.append("code - ").append(errorCode).append("\n");
         } else {
             value.append(super.getMessage());
         }
@@ -305,6 +308,9 @@ public class TwitterException extends Exception implements TwitterResponse, Http
                 break;
             case GONE:
                 cause = "This API endpoint has been turned off.";
+                break;
+            case ENTITY_TOO_LARGE:
+                cause = "The request sent to Twitter was too large. This most commonly occurs when an uploaded image or file is over Twitter's limit.";
                 break;
             case ENHANCE_YOUR_CALM:
                 cause = "Twitter rate limited the application (\"Enhance Your Calm\"). Rate Limit information: https://developer.twitter.com/en/docs/basics/rate-limiting.html -- https://developer.twitter.com/en/docs/basics/rate-limits";
