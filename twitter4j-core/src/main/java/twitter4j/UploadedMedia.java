@@ -31,11 +31,17 @@ public final class UploadedMedia implements java.io.Serializable {
   private int imageHeight;
   private String imageType;
   private long mediaId;
+  private String mediaIdString;
   private long size;
 
+  // “pending” -> “in_progress” -> [“failed” | “succeeded”].
   private Optional<String> processingState = Optional.empty();
   private Optional<Integer> processingCheckAfterSecs = Optional.empty();
   private Optional<Integer> progressPercent = Optional.empty();
+
+  private Optional<Integer> uploadErrorCode = Optional.empty();
+  private Optional<String> uploadErrorName = Optional.empty();
+  private Optional<String> uploadErrorMessage = Optional.empty();
 
   /*package*/ UploadedMedia(JSONObject json) throws TwitterException {
     init(json);
@@ -73,8 +79,28 @@ public final class UploadedMedia implements java.io.Serializable {
     return progressPercent;
   }
 
+  public Optional<Integer> getUploadErrorCode() {
+    return uploadErrorCode;
+  }
+
+  public String getUploadErrorDisplay() {
+    String output = "";
+
+    if (uploadErrorName.isPresent()) {
+      output += String.format("%s: ", uploadErrorName.get());
+    }
+
+    if (uploadErrorMessage.isPresent()) {
+      output += String.format(" %s", uploadErrorMessage.get());
+    }
+
+    return output;
+  }
+
   private void init(JSONObject json) throws TwitterException {
     mediaId = ParseUtil.getLong("media_id", json);
+    mediaIdString = ParseUtil.getUnescapedString("media_id_string", json);
+
     size = ParseUtil.getLong("size", json);
     try {
       if (!json.isNull("image")) {
@@ -87,8 +113,15 @@ public final class UploadedMedia implements java.io.Serializable {
       if (!json.isNull("processing_info")) {
         JSONObject processingInfo = json.getJSONObject("processing_info");
         processingState = Optional.ofNullable(ParseUtil.getUnescapedString("state", processingInfo));
-        processingCheckAfterSecs = Optional.ofNullable(ParseUtil.getInt("check_after_secs", processingInfo));
-        progressPercent = Optional.ofNullable(ParseUtil.getInt("progress_percent", processingInfo));
+        processingCheckAfterSecs = Optional.of(ParseUtil.getInt("check_after_secs", processingInfo));
+        progressPercent = Optional.of(ParseUtil.getInt("progress_percent", processingInfo));
+
+        if (!processingInfo.isNull("error")) {
+          JSONObject error = processingInfo.getJSONObject("error");
+          uploadErrorCode = Optional.of(ParseUtil.getInt("code", error));
+          uploadErrorName = Optional.ofNullable(ParseUtil.getUnescapedString("name", error));
+          uploadErrorMessage = Optional.ofNullable(ParseUtil.getUnescapedString("message", error));
+        }
       }
 
     } catch (JSONException jsone) {

@@ -16,13 +16,22 @@
 
 package twitter4j;
 
-import twitter4j.conf.ConfigurationContext;
-
-import java.io.*;
-import java.net.*;
+import java.io.BufferedInputStream;
+import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Authenticator;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.PasswordAuthentication;
+import java.net.Proxy;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import twitter4j.conf.ConfigurationContext;
 
 /**
  * @author Yusuke Yamamoto - yusuke at mac.com
@@ -174,6 +183,13 @@ class HttpClientImpl extends HttpClientBase implements HttpResponseCode, java.io
                     }
                 }
             } catch (IOException ioe) {
+                // A 413 error code (entity too large) throws an IOException in: new HttpResponseImpl(con, CONF);
+                // This is an intentional failure vs a temporary/retryable failure so throw a custom exception
+                if (ioe.getMessage().contains("Server returned HTTP response code: 413")) {
+                    // passing null because  TwitterException.isCausedByNetworkIssue considers an IOException a retryable error
+                    throw new TwitterException(ioe.getMessage(), null, ENTITY_TOO_LARGE);
+                }
+
                 // connection timeout or read timeout
                 if (retriedCount == CONF.getHttpRetryCount()) {
                     throw new TwitterException(ioe.getMessage(), ioe, responseCode);

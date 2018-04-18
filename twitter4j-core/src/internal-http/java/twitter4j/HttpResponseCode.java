@@ -31,6 +31,7 @@ public interface HttpResponseCode {
     int NOT_FOUND = 404; // Not Found: The URI requested is invalid or the resource requested, such as a user, does not exists.
     int NOT_ACCEPTABLE = 406; // Not Acceptable: Returned by the Search API when an invalid format is specified in the request.
     int GONE = 410; // Gone: Used to indicate that an API endpoint has been turned off.
+    int ENTITY_TOO_LARGE = 413; // Undocumented response code returned during media upload when the file included is too large.
     int ENHANCE_YOUR_CALM = 420; // Enhance Your Calm: Returned by the Search and Trends API  when you are being rate limited. Not registered in RFC.
     int UNPROCESSABLE_ENTITY = 422; //Returned when an image uploaded to POST account/update_profile_banner is unable to be processed.
     int TOO_MANY_REQUESTS = 429; //Returned in API v1.1 when a request cannot be served due to the application's rate limit having been exhausted for the resource. See Rate Limiting in API v1.1.

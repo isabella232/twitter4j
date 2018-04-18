@@ -19,6 +19,7 @@ package twitter4j;
 
 import static twitter4j.HttpParameter.getParameterArray;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -67,15 +68,22 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
   private final HttpParameter[] IMPLICIT_PARAMS;
   private final HttpParameter INCLUDE_MY_RETWEET;
 
-  private final String CHUNKED_INIT = "INIT";
-  private final String CHUNKED_APPEND = "APPEND";
-  private final String CHUNKED_FINALIZE = "FINALIZE";
-  private final String CHUNKED_STATUS = "STATUS";
+  private final String CHUNKED_COMMAND_INIT = "INIT";
+  private final String CHUNKED_COMMAND_APPEND = "APPEND";
+  private final String CHUNKED_COMMAND_FINALIZE = "FINALIZE";
+  private final String CHUNKED_COMMAND_STATUS = "STATUS";
+
+  private final String CHUNKED_STATE_FAIL = "failed";
+  private final String CHUNKED_STATE_IN_PROGRESS = "in_progress";
+  private final String CHUNKED_STATE_PENDING = "pending";
+  private final String CHUNKED_STATE_SUCCESS = "succeeded";
 
   private final int CHUNKED_WAIT_FALLBACK_SECONDS = 2;
-  private final int CHUNKED_MAX_UPLOAD_ATTEMPTS = 20;
+  private final int CHUNKED_WAIT_MAX_SECONDS = 5;
+  private final int CHUNKED_MAX_UPLOAD_ATTEMPTS_WITH_NO_PROGRESS = 10;
 
-  private final int MAX_MEDIA_INPUT_BYTES = 512 * 1024 * 1024; // 512MB is a constraint imposed by Twitter for video files
+  // https://developer.twitter.com/en/docs/media/upload-media/uploading-media/media-best-practices
+  private final int MAX_MEDIA_INPUT_BYTES = 512 * 1024 * 1024; // 512MB is a constraint imposed by Twitter for video files. realistically, with max duration of 2min 2sec, this should likely never be reached
   private final int CHUNKED_SIZE_BYTES = 2 * 1024 * 1024; // max chunk size
 
   private static final ConcurrentHashMap<Configuration, HttpParameter[]> implicitParamsMap = new ConcurrentHashMap<Configuration, HttpParameter[]>();
@@ -133,7 +141,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
     }
   }
 
-    /* Timelines Resources */
+  /* Timelines Resources */
 
   @Override
   public ResponseList<Status> getMentionsTimeline() throws TwitterException {
@@ -220,7 +228,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
     ));
   }
 
-    /* Tweets Resources */
+  /* Tweets Resources */
 
   @Override
   public ResponseList<Status> getRetweets(long statusId) throws TwitterException {
@@ -318,7 +326,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
     byte[] dataBytes = getBytes(media);
 
     try {
-      UploadedMedia uploadedMedia = uploadMediaChunkedInit(dataBytes.length, mimeType, tweetMediaType); // no need to close ByteArrayInputStream?
+      UploadedMedia uploadedMedia = uploadMediaChunkedInit(dataBytes.length, mimeType, tweetMediaType);
       ByteArrayInputStream dataInputStream = new ByteArrayInputStream(dataBytes);
 
       byte[] segmentData = new byte[CHUNKED_SIZE_BYTES];
@@ -329,7 +337,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
       while ((bytesRead = dataInputStream.read(segmentData)) > 0) {
         totalRead = totalRead + bytesRead;
         logger.debug(String.format("Chunked append, segment index: %s bytes: %s/%s", segmentIndex, totalRead, dataBytes));
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(segmentData, 0, bytesRead); // no need to close ByteArrayInputStream ?
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(segmentData, 0, bytesRead);
         uploadMediaChunkedAppend(fileName, byteArrayInputStream, segmentIndex, uploadedMedia.getMediaId());
         segmentData = new byte[CHUNKED_SIZE_BYTES];
         segmentIndex++;
@@ -340,16 +348,92 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
     }
   }
 
+  @Override
+  public UploadedMedia uploadMediaChunkedBuffered(String fileName, InputStream media, String mimeType, TweetMediaType tweetMediaType, long mediaLengthBytes) throws TwitterException {
+    try {
+      UploadedMedia uploadedMedia = uploadMediaChunkedInit(mediaLengthBytes, mimeType, tweetMediaType);
+      BufferedInputStream buffered = new BufferedInputStream(media, CHUNKED_SIZE_BYTES);
+
+      byte[] segmentData = new byte[CHUNKED_SIZE_BYTES];
+      int totalRead = 0;
+      for (int segmentIndex = 0; totalRead < mediaLengthBytes; ++segmentIndex) {
+        int bytesRead = 0;
+        for (; bytesRead < CHUNKED_SIZE_BYTES; bytesRead++) {
+          int data = buffered.read();
+          if (data == -1)
+            break;
+          segmentData[bytesRead] = (byte) data;
+        }
+        totalRead += bytesRead;
+        logger.debug("Chunked append, segment index:" + segmentIndex + " bytes:" + totalRead + "/" + mediaLengthBytes);
+        uploadMediaChunkedAppend(fileName, new ByteArrayInputStream(segmentData, 0, bytesRead), segmentIndex, uploadedMedia.getMediaId());
+      }
+
+      return uploadMediaChunkedConfirmAndRetrieveUpload(uploadedMedia.getMediaId());
+    } catch (Exception e) {
+      throw new TwitterException(e);
+    }
+  }
+
+  private UploadedMedia uploadMediaChunkedConfirmAndRetrieveUpload(long mediaId) throws TwitterException {
+    int tries = 0;
+    int lastProgressPercent = 0;
+    int currentProgressPercent = 0;
+
+    // tell Twitter to complete the chunked upload
+    UploadedMedia uploadedMedia = uploadMediaChunkedFinalize(mediaId);
+
+    while (tries < CHUNKED_MAX_UPLOAD_ATTEMPTS_WITH_NO_PROGRESS) {
+      if (lastProgressPercent == currentProgressPercent) {
+        tries++;
+      }
+      lastProgressPercent = currentProgressPercent;
+
+      // per Twitter docs: if no state is provided, don't need to call status again. Exact wording:
+      // "If and (only if) the response of the FINALIZE command contains a processing_info field, it may also be necessary to use a STATUS command and wait for it to return success before proceeding to Tweet creation."
+      String state = uploadedMedia.getProcessingState().orElse(CHUNKED_STATE_SUCCESS);
+      if (state.equals(CHUNKED_STATE_SUCCESS)) {
+        return uploadedMedia;
+      }
+
+      // if the upload has failed, parse the error message and try to throw a detailed Twitter exception
+      if (state.equals(CHUNKED_STATE_FAIL)) {
+        String errorReason = !uploadedMedia.getUploadErrorDisplay().isEmpty() ? uploadedMedia.getUploadErrorDisplay() : "No reason was parsed.";
+        String errorMessage = String.format("Failed to finalize the chunked upload. Reason: %s", errorReason);
+        Optional<Integer> uploadErrorCodeMaybe = uploadedMedia.getUploadErrorCode();
+        if (uploadErrorCodeMaybe.isPresent()) {
+          throw new TwitterException(errorMessage, uploadErrorCodeMaybe.get());
+        } else {
+          throw new TwitterException(errorMessage);
+        }
+      }
+
+      // if still in progress, update the tracked percentage and wait before checking progress again
+      if (state.equals(CHUNKED_STATE_PENDING) || state.equals(CHUNKED_STATE_IN_PROGRESS)) {
+        currentProgressPercent = uploadedMedia.getProgressPercent().orElseThrow(() -> new TwitterException("Chunked upload API response had no progress percentage."));
+        int waitSec = Math.min(uploadedMedia.getProcessingCheckAfterSecs().orElse(CHUNKED_WAIT_FALLBACK_SECONDS), CHUNKED_WAIT_MAX_SECONDS);
+        logger.debug(String.format("Chunked finalize, wait for: %s seconds", waitSec));
+        try {
+          Thread.sleep(waitSec * 1000);
+        } catch (InterruptedException e) {
+          throw new TwitterException("Failed to finalize the chunked upload. Interrupted while waiting to confirm chunked upload.", e);
+        }
+      }
+
+      uploadedMedia = uploadMediaChunkedStatus(mediaId);
+    }
+
+    throw new TwitterException(String.format("Failed to finalize the chunked upload. Progress stalled at %s percent. Tried %s times.", currentProgressPercent, tries + 1));
+  }
+
   // twurl -H upload.twitter.com "/1.1/media/upload.json" -d "command=INIT&media_type=video/mp4&total_bytes=4430752"
   private UploadedMedia uploadMediaChunkedInit(long size, String mimeType, TweetMediaType tweetMediaType) throws TwitterException {
     return new UploadedMedia(
         post(conf.getUploadBaseURL() + "media/upload.json",
-          new HttpParameter[]{
-              new HttpParameter("command", CHUNKED_INIT),
-              new HttpParameter("media_type", mimeType),
-              new HttpParameter("media_category", tweetMediaType.getTwitterKey()),
-              new HttpParameter("total_bytes", size)
-          }
+            new HttpParameter("command", CHUNKED_COMMAND_INIT),
+            new HttpParameter("media_type", mimeType),
+            new HttpParameter("media_category", tweetMediaType.getTwitterKey()),
+            new HttpParameter("total_bytes", size)
         ).asJSONObject());
   }
 
@@ -359,78 +443,37 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
                                         int segmentIndex,
                                         long mediaId) throws TwitterException {
     post(conf.getUploadBaseURL() + "media/upload.json",
-        new HttpParameter[]{
-          new HttpParameter("command", CHUNKED_APPEND),
-          new HttpParameter("media_id", mediaId),
-          new HttpParameter("segment_index", segmentIndex),
-          new HttpParameter("media", fileName, media)
-        }
+        new HttpParameter("command", CHUNKED_COMMAND_APPEND),
+        new HttpParameter("media_id", mediaId),
+        new HttpParameter("segment_index", segmentIndex),
+        new HttpParameter("media", fileName, media)
     );
   }
 
+  // https://developer.twitter.com/en/docs/media/upload-media/api-reference/post-media-upload-finalize
   // twurl -H upload.twitter.com "/1.1/media/upload.json" -d "command=FINALIZE&media_id=601413451156586496"
   private UploadedMedia uploadMediaChunkedFinalize(long mediaId) throws TwitterException {
-    int tries = 0;
-    int lastProgressPercent = 0;
-    int currentProgressPercent = 0;
-    UploadedMedia uploadedMedia = uploadMediaChunkedFinalize0(mediaId);
-
-    while (tries < CHUNKED_MAX_UPLOAD_ATTEMPTS) {
-      if (lastProgressPercent == currentProgressPercent) {
-        tries++;
-      }
-      lastProgressPercent = currentProgressPercent;
-      Optional<String> stateMaybe = uploadedMedia.getProcessingState();
-      if (!stateMaybe.isPresent()) {
-        // this appears to happen when chunked images are uploaded. videos have processingState
-        return uploadedMedia;
-      }
-
-      String state = stateMaybe.get();
-      if (state.equals("failed")) {
-        throw new TwitterException("Failed to finalize the chunked upload.");
-      }
-      if (state.equals("pending") || state.equals("in_progress")) {
-        currentProgressPercent = uploadedMedia.getProgressPercent().orElseThrow(() -> new TwitterException("Chunked upload API response had no progress percentage."));
-        int waitSec = uploadedMedia.getProcessingCheckAfterSecs().orElse(CHUNKED_WAIT_FALLBACK_SECONDS);
-        logger.debug(String.format("Chunked finalize, wait for: %s seconds", waitSec));
-        try {
-          Thread.sleep(waitSec * 1000);
-        } catch (InterruptedException e) {
-          throw new TwitterException("Failed to finalize the chunked upload.", e);
-        }
-      }
-      if (state.equals("succeeded")) {
-        return uploadedMedia;
-      }
-      uploadedMedia = uploadMediaChunkedStatus(mediaId);
-    }
-    throw new TwitterException(String.format("Failed to finalize the chunked upload, progress has stopped, tried %s times.", tries + 1));
-  }
-
-  private UploadedMedia uploadMediaChunkedFinalize0(long mediaId) throws TwitterException {
     JSONObject json = post(
         conf.getUploadBaseURL() + "media/upload.json",
-        new HttpParameter[]{
-            new HttpParameter("command", CHUNKED_FINALIZE),
-            new HttpParameter("media_id", mediaId)})
+        new HttpParameter("command", CHUNKED_COMMAND_FINALIZE),
+        new HttpParameter("media_id", mediaId))
         .asJSONObject();
     logger.debug("Finalize response:" + json);
     return new UploadedMedia(json);
   }
 
+  // https://developer.twitter.com/en/docs/media/upload-media/api-reference/get-media-upload-status
   private UploadedMedia uploadMediaChunkedStatus(long mediaId) throws TwitterException {
     JSONObject json = get(
         conf.getUploadBaseURL() + "media/upload.json",
-        new HttpParameter[]{
-            new HttpParameter("command", CHUNKED_STATUS),
-            new HttpParameter("media_id", mediaId)})
+        new HttpParameter("command", CHUNKED_COMMAND_STATUS),
+        new HttpParameter("media_id", mediaId))
         .asJSONObject();
     logger.debug("Status response:" + json);
     return new UploadedMedia(json);
   }
     
-    /* Search Resources */
+  /* Search Resources */
 
   @Override
   public QueryResult search(Query query) throws TwitterException {
@@ -443,7 +486,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
     }
   }
 
-    /* Direct Messages Resources */
+  /* Direct Messages Resources */
 
   @Override
   public ResponseList<DirectMessage> getDirectMessages() throws TwitterException {
@@ -501,7 +544,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
     return get(url).asStream();
   }
 
-    /* Friends & Followers Resources */
+  /* Friends & Followers Resources */
 
   @Override
   public IDs getNoRetweetsFriendships() throws TwitterException {
@@ -765,7 +808,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
         new HttpParameter("include_user_entities", includeUserEntities)));
   }
 
-    /* Users Resources */
+  /* Users Resources */
 
   @Override
   public AccountSettings getAccountSettings() throws TwitterException {
@@ -1051,7 +1094,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
         , new HttpParameter("banner", "banner", image));
   }
 
-    /* Suggested Users Resources */
+  /* Suggested Users Resources */
 
   @Override
   public ResponseList<User> getUserSuggestions(String categorySlug) throws TwitterException {
@@ -1080,7 +1123,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
     return factory.createUserListFromJSONArray(res);
   }
 
-    /* Favorites Resources */
+  /* Favorites Resources */
 
   @Override
   public ResponseList<Status> getFavorites() throws TwitterException {
@@ -1129,7 +1172,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
     return factory.createStatus(post(conf.getRestBaseURL() + "favorites/create.json?id=" + id));
   }
 
-    /* Lists Resources */
+  /* Lists Resources */
 
   @Override
   public ResponseList<UserList> getUserLists(String listOwnerScreenName) throws TwitterException {
@@ -1798,7 +1841,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
         , new HttpParameter("cursor", cursor)));
   }
 
-    /* Saved Searches Resources */
+  /* Saved Searches Resources */
 
   @Override
   public ResponseList<SavedSearch> getSavedSearches() throws TwitterException {
@@ -1823,7 +1866,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
         + "saved_searches/destroy/" + id + ".json"));
   }
 
-    /* Places & Geo Resources */
+  /* Places & Geo Resources */
 
   @Override
   public Place getGeoDetails(String placeId) throws TwitterException {
@@ -1870,7 +1913,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
         + "geo/similar_places.json", params.toArray(new HttpParameter[params.size()])));
   }
 
-    /* Trends Resources */
+  /* Trends Resources */
 
   @Override
   public Trends getPlaceTrends(int woeid) throws TwitterException {
@@ -1892,7 +1935,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
         , new HttpParameter("long", location.getLongitude())));
   }
 
-    /* Spam Reporting Resources */
+  /* Spam Reporting Resources */
 
   @Override
   public User reportSpam(long userId) throws TwitterException {
@@ -1908,7 +1951,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
     ));
   }
 
-    /* Help Resources */
+  /* Help Resources */
 
   @Override
   public TwitterAPIConfiguration getAPIConfiguration() throws TwitterException {
