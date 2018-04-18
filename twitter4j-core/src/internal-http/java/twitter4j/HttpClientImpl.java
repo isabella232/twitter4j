@@ -150,15 +150,7 @@ class HttpClientImpl extends HttpClientBase implements HttpResponseCode, java.io
                         os.close();
                     }
                     res = new HttpResponseImpl(con, CONF);
-                    try {
-                        responseCode = con.getResponseCode();
-                    } catch (IOException codeIoException) {
-                        if (codeIoException.getMessage().contains("response code: 413")) {
-                            responseCode = 413;
-                        } else {
-                            throw codeIoException;
-                        }
-                    }
+                    responseCode = con.getResponseCode();
                     if (logger.isDebugEnabled()) {
                         logger.debug("Response: ");
                         Map<String, List<String>> responseHeaders = con.getHeaderFields();
@@ -191,6 +183,13 @@ class HttpClientImpl extends HttpClientBase implements HttpResponseCode, java.io
                     }
                 }
             } catch (IOException ioe) {
+                // A 413 error code (entity too large) throws an IOException in: new HttpResponseImpl(con, CONF);
+                // This is an intentional failure vs a temporary/retryable failure so throw a custom exception
+                if (ioe.getMessage().contains("Server returned HTTP response code: 413")) {
+                    // passing null because  TwitterException.isCausedByNetworkIssue considers an IOException a retryable error
+                    throw new TwitterException(ioe.getMessage(), null, ENTITY_TOO_LARGE);
+                }
+
                 // connection timeout or read timeout
                 if (retriedCount == CONF.getHttpRetryCount()) {
                     throw new TwitterException(ioe.getMessage(), ioe, responseCode);
