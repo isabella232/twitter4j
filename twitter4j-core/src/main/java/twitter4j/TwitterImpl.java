@@ -19,6 +19,7 @@ package twitter4j;
 
 import static twitter4j.HttpParameter.getParameterArray;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -75,7 +76,8 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
   private final int CHUNKED_WAIT_FALLBACK_SECONDS = 2;
   private final int CHUNKED_MAX_UPLOAD_ATTEMPTS = 20;
 
-  private final int MAX_MEDIA_INPUT_BYTES = 512 * 1024 * 1024; // 512MB is a constraint imposed by Twitter for video files
+  // https://developer.twitter.com/en/docs/media/upload-media/uploading-media/media-best-practices
+  private final int MAX_MEDIA_INPUT_BYTES = 512 * 1024 * 1024; // 512MB is a constraint imposed by Twitter for video files. realistically, with max duration of 2min 2sec, this should likely never be reached
   private final int CHUNKED_SIZE_BYTES = 2 * 1024 * 1024; // max chunk size
 
   private static final ConcurrentHashMap<Configuration, HttpParameter[]> implicitParamsMap = new ConcurrentHashMap<Configuration, HttpParameter[]>();
@@ -318,7 +320,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
     byte[] dataBytes = getBytes(media);
 
     try {
-      UploadedMedia uploadedMedia = uploadMediaChunkedInit(dataBytes.length, mimeType, tweetMediaType); // no need to close ByteArrayInputStream?
+      UploadedMedia uploadedMedia = uploadMediaChunkedInit(dataBytes.length, mimeType, tweetMediaType);
       ByteArrayInputStream dataInputStream = new ByteArrayInputStream(dataBytes);
 
       byte[] segmentData = new byte[CHUNKED_SIZE_BYTES];
@@ -329,11 +331,38 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
       while ((bytesRead = dataInputStream.read(segmentData)) > 0) {
         totalRead = totalRead + bytesRead;
         logger.debug(String.format("Chunked append, segment index: %s bytes: %s/%s", segmentIndex, totalRead, dataBytes));
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(segmentData, 0, bytesRead); // no need to close ByteArrayInputStream ?
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(segmentData, 0, bytesRead);
         uploadMediaChunkedAppend(fileName, byteArrayInputStream, segmentIndex, uploadedMedia.getMediaId());
         segmentData = new byte[CHUNKED_SIZE_BYTES];
         segmentIndex++;
       }
+      return uploadMediaChunkedFinalize(uploadedMedia.getMediaId());
+    } catch (Exception e) {
+      throw new TwitterException(e);
+    }
+  }
+
+  @Override
+  public UploadedMedia uploadMediaChunkedBuffered(String fileName, InputStream media, String mimeType, TweetMediaType tweetMediaType, long mediaLengthBytes) throws TwitterException {
+    try {
+      UploadedMedia uploadedMedia = uploadMediaChunkedInit(mediaLengthBytes, mimeType, tweetMediaType);
+      BufferedInputStream buffered = new BufferedInputStream(media, CHUNKED_SIZE_BYTES);
+
+      byte[] segmentData = new byte[CHUNKED_SIZE_BYTES];
+      int totalRead = 0;
+      for (int segmentIndex = 0; totalRead < mediaLengthBytes; ++segmentIndex) {
+        int bytesRead = 0;
+        for (; bytesRead < CHUNKED_SIZE_BYTES; bytesRead++) {
+          int data = buffered.read();
+          if (data == -1)
+            break;
+          segmentData[bytesRead] = (byte) data;
+        }
+        totalRead += bytesRead;
+        logger.debug("Chunked append, segment index:" + segmentIndex + " bytes:" + totalRead + "/" + mediaLengthBytes);
+        uploadMediaChunkedAppend(fileName, new ByteArrayInputStream(segmentData, 0, bytesRead), segmentIndex, uploadedMedia.getMediaId());
+      }
+
       return uploadMediaChunkedFinalize(uploadedMedia.getMediaId());
     } catch (Exception e) {
       throw new TwitterException(e);
