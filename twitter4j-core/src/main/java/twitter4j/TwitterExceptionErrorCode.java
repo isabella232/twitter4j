@@ -63,11 +63,11 @@ public enum TwitterExceptionErrorCode {
     this.associatedStatusCode = associatedStatusCode;
   }
 
-  private int getCode() {
+  public int getCode() {
     return code;
   }
 
-  private Optional<Integer> getAssociatedStatusCode() {
+  public Optional<Integer> getAssociatedStatusCode() {
     return associatedStatusCode;
   }
 
