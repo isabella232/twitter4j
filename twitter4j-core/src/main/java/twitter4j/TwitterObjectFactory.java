@@ -275,6 +275,22 @@ public final class TwitterObjectFactory {
     }
 
     /**
+     * Constructs an UploadedMedia object from rawJSON string.
+     *
+     * @param rawJSON raw JSON form as String
+     * @return UploadedMedia
+     * @throws TwitterException when provided string is not a valid JSON string.
+     * @since HubSpot/Twitter4J 4.0.9
+     */
+    public static UploadedMedia createUploadedMedia(String rawJSON) throws TwitterException {
+        try {
+            return new UploadedMedia(new JSONObject(rawJSON));
+        } catch (JSONException e) {
+            throw new TwitterException(e);
+        }
+    }
+
+    /**
      * Construct an object from rawJSON string.  This method may be called
      * when you do not know what a given raw JSON string contains.  It will
      * do the work of determining what type of object the JSON represents,
