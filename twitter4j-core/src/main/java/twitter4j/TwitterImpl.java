@@ -80,7 +80,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
 
   private final int CHUNKED_WAIT_FALLBACK_SECONDS = 2;
   private final int CHUNKED_WAIT_MAX_SECONDS = 5;
-  private final int CHUNKED_MAX_UPLOAD_ATTEMPTS_WITH_NO_PROGRESS = 10;
+  private final int CHUNKED_MAX_UPLOAD_ATTEMPTS_WITH_NO_PROGRESS = 20;
 
   // https://developer.twitter.com/en/docs/media/upload-media/uploading-media/media-best-practices
   private final int MAX_MEDIA_INPUT_BYTES = 512 * 1024 * 1024; // 512MB is a constraint imposed by Twitter for video files. realistically, with max duration of 2min 2sec, this should likely never be reached
@@ -383,7 +383,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
     // tell Twitter to complete the chunked upload
     UploadedMedia uploadedMedia = uploadMediaChunkedFinalize(mediaId);
 
-    while (tries < CHUNKED_MAX_UPLOAD_ATTEMPTS_WITH_NO_PROGRESS) {
+    while ((tries + 1) < CHUNKED_MAX_UPLOAD_ATTEMPTS_WITH_NO_PROGRESS) {
       if (lastProgressPercent == currentProgressPercent) {
         tries++;
       }
