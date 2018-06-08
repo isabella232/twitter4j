@@ -364,6 +364,10 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
             break;
           segmentData[bytesRead] = (byte) data;
         }
+        if (bytesRead == 0) {
+          break;
+        }
+
         totalRead += bytesRead;
         logger.debug("Chunked append, segment index:" + segmentIndex + " bytes:" + totalRead + "/" + mediaLengthBytes);
         uploadMediaChunkedAppend(fileName, new ByteArrayInputStream(segmentData, 0, bytesRead), segmentIndex, uploadedMedia.getMediaId());
