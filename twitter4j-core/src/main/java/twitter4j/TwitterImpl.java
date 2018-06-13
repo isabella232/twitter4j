@@ -342,7 +342,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
         segmentData = new byte[CHUNKED_SIZE_BYTES];
         segmentIndex++;
       }
-      return uploadMediaChunkedFinalize(uploadedMedia.getMediaId());
+      return uploadMediaChunkedConfirmAndRetrieveUpload(uploadedMedia.getMediaId());
     } catch (Exception e) {
       throw new TwitterException(e);
     }
