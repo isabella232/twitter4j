@@ -504,6 +504,11 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
     logger.debug("Status response:" + json);
     return new UploadedMedia(json);
   }
+
+  @Override
+  public UploadedMedia uploadMediaChunkedGetStatus(long mediaId) throws TwitterException {
+    return uploadMediaChunkedStatus(mediaId);
+  }
     
   /* Search Resources */
 

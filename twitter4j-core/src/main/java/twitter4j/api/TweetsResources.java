@@ -191,10 +191,22 @@ public interface TweetsResources {
     UploadedMedia uploadMedia(String fileName, InputStream media) throws TwitterException;
 
     /**
+     * This should be called after {@link #uploadMediaChunked} or {@link #uploadMediaChunkedBuffered} to confirm the upload succeeded.
+     * To avoid manual status checking use {@link #uploadMediaChunkedAndConfirm} or {@link #uploadMediaChunkedBufferedAndConfirm}.
+     *
+     * @param mediaId ID of previously uploaded and finalized UploadedMedia object
+     * @return upload result
+     * @throws TwitterException assorted uploading errors or when Twitter service or network is unavailable
+     * @see <a href="https://developer.twitter.com/en/docs/media/upload-media/api-reference/post-media-upload">Uploading Media | Twitter Developers</a>
+     * @since HubSpot/Twitter4J 4.0.11
+     */
+    UploadedMedia uploadMediaChunkedGetStatus(long mediaId) throws TwitterException;
+
+    /**
      * Uploads media using a chunked approach to be attached via {@link #updateStatus(twitter4j.StatusUpdate)}.
      * This should be used for videos, images, or animated gifs.
-     * This method uploads the entire file into memory. For a buffered approach, see {@link #uploadMediaChunkedBuffered)}.
-     * <br>This method calls https://api.twitter.com/1.1/media/upload.json
+     * This method uploads the entire file into memory. For a buffered approach, see {@link #uploadMediaChunkedBuffered}.
+     * {@link #uploadMediaChunkedGetStatus} should be called after completion to confirm Twitter processed the upload.
      *
      * @param fileName media file name
      * @param media media body as stream
@@ -211,7 +223,7 @@ public interface TweetsResources {
     /**
      * Uploads media using a chunked approach to be attached via {@link #updateStatus(twitter4j.StatusUpdate)}.
      * This should be used for videos, images, or animated gifs.
-     * This method uploads the entire file into memory. For a buffered approach, see {@link #uploadMediaChunkedBuffered)}.
+     * This method uploads the entire file into memory. For a buffered approach, see {@link #uploadMediaChunkedBufferedAndConfirm}.
      * This method also checks the status to confirm the upload succeeded. To implement your own status-checking, see {@link #uploadMediaChunked)}.
      *
      * @param fileName media file name
@@ -230,6 +242,7 @@ public interface TweetsResources {
      * Uploads media using a chunked approach to be attached via {@link #updateStatus(twitter4j.StatusUpdate)}.
      * This should be used for videos, images, or animated gifs.
      * This method does a buffered read of the input stream. For an in-memory approach, see {@link #uploadMediaChunked)}.
+     * {@link #uploadMediaChunkedGetStatus} should be called after completion to confirm Twitter processed the upload.
      *
      * @param fileName media file name
      * @param media media body as stream
@@ -248,8 +261,8 @@ public interface TweetsResources {
     /**
      * Uploads media using a chunked approach to be attached via {@link #updateStatus(twitter4j.StatusUpdate)}.
      * This should be used for videos, images, or animated gifs.
-     * This method does a buffered read of the input stream. For an in-memory approach, see {@link #uploadMediaChunked)}.
-     * This method also checks the status to confirm the upload succeeded. To implement your own status-checking, see {@link #uploadMediaChunkedBuffered)}.
+     * This method does a buffered read of the input stream. For an in-memory approach, see {@link #uploadMediaChunkedAndConfirm)}.
+     * This method also checks the status to confirm the upload succeeded. To implement your own status-checking, see {@link #uploadMediaChunkedBuffered}.
      *
      * @param fileName media file name
      * @param media media body as stream
