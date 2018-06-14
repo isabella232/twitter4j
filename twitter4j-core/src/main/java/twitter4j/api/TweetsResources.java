@@ -189,31 +189,60 @@ public interface TweetsResources {
      * @since Twitter4J 4.0.3
      */
     UploadedMedia uploadMedia(String fileName, InputStream media) throws TwitterException;
-    
+
     /**
-     * Uploads media using chunked approach to be attached via {@link #updateStatus(twitter4j.StatusUpdate)}. 
+     * This should be called after {@link #uploadMediaChunked} or {@link #uploadMediaChunkedBuffered} to confirm the upload succeeded.
+     * To avoid manual status checking use {@link #uploadMediaChunkedAndConfirm} or {@link #uploadMediaChunkedBufferedAndConfirm}.
+     *
+     * @param mediaId ID of previously uploaded and finalized UploadedMedia object
+     * @return upload result
+     * @throws TwitterException assorted uploading errors or when Twitter service or network is unavailable
+     * @see <a href="https://developer.twitter.com/en/docs/media/upload-media/api-reference/post-media-upload">Uploading Media | Twitter Developers</a>
+     * @since HubSpot/Twitter4J 4.0.11
+     */
+    UploadedMedia uploadMediaChunkedGetStatus(long mediaId) throws TwitterException;
+
+    /**
+     * Uploads media using a chunked approach to be attached via {@link #updateStatus(twitter4j.StatusUpdate)}.
      * This should be used for videos, images, or animated gifs.
-     * This method uploads the entire file into memory. For a buffered approach, see {@link #uploadMediaChunkedBuffered)}.
-     * <br>This method calls https://api.twitter.com/1.1/media/upload.json
+     * This method uploads the entire file into memory. For a buffered approach, see {@link #uploadMediaChunkedBuffered}.
+     * {@link #uploadMediaChunkedGetStatus} should be called after completion to confirm Twitter processed the upload.
      *
      * @param fileName media file name
      * @param media media body as stream
      * @param mimeType e.g. MIME type (aka media_type) of media (e.g. video/mp4)
      * @param tweetMediaType generally IMAGE or VIDEO. Enables advanced features like tracking video duration.
      * @return upload result
-     * @throws TwitterException when Twitter service or network is unavailable
-     * @see <a href="https://dev.twitter.com/rest/public/uploading-media#chunkedupload">Uploading Media | Twitter Developers</a>
-     * @see <a href="https://dev.twitter.com/docs/api/1.1/post/statuses/update">POST statuses/update | Twitter Developers</a>
-     * @see <a href="https://dev.twitter.com/docs/api/multiple-media-extended-entities">Multiple Media Entities in Statuses</a>
+     * @throws TwitterException assorted uploading errors or when Twitter service or network is unavailable
+     * @see <a href="https://developer.twitter.com/en/docs/media/upload-media/api-reference/post-media-upload">Uploading Media | Twitter Developers</a>
+     * @see <a href="https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/post-statuses-update.html">POST statuses/update | Twitter Developers</a>
      * @since HubSpot/Twitter4J 4.0.8
      */
     UploadedMedia uploadMediaChunked(String fileName, InputStream media, String mimeType, TweetMediaType tweetMediaType) throws TwitterException;
 
     /**
-     * Uploads media using chunked approach to be attached via {@link #updateStatus(twitter4j.StatusUpdate)}.
+     * Uploads media using a chunked approach to be attached via {@link #updateStatus(twitter4j.StatusUpdate)}.
      * This should be used for videos, images, or animated gifs.
-     * This method does a buffered read of the input stream. For a faster, in-memory approach, see {@link #uploadMediaChunked)}.
-     * <br>This method calls https://api.twitter.com/1.1/media/upload.json
+     * This method uploads the entire file into memory. For a buffered approach, see {@link #uploadMediaChunkedBufferedAndConfirm}.
+     * This method also checks the status to confirm the upload succeeded. To implement your own status-checking, see {@link #uploadMediaChunked)}.
+     *
+     * @param fileName media file name
+     * @param media media body as stream
+     * @param mimeType e.g. MIME type (aka media_type) of media (e.g. video/mp4)
+     * @param tweetMediaType generally IMAGE or VIDEO. Enables advanced features like tracking video duration.
+     * @return upload result
+     * @throws TwitterException assorted uploading errors or when Twitter service or network is unavailable
+     * @see <a href="https://developer.twitter.com/en/docs/media/upload-media/api-reference/post-media-upload">Uploading Media | Twitter Developers</a>
+     * @see <a href="https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/post-statuses-update.html">POST statuses/update | Twitter Developers</a>
+     * @since HubSpot/Twitter4J 4.0.11
+     */
+    UploadedMedia uploadMediaChunkedAndConfirm(String fileName, InputStream media, String mimeType, TweetMediaType tweetMediaType) throws TwitterException;
+
+    /**
+     * Uploads media using a chunked approach to be attached via {@link #updateStatus(twitter4j.StatusUpdate)}.
+     * This should be used for videos, images, or animated gifs.
+     * This method does a buffered read of the input stream. For an in-memory approach, see {@link #uploadMediaChunked)}.
+     * {@link #uploadMediaChunkedGetStatus} should be called after completion to confirm Twitter processed the upload.
      *
      * @param fileName media file name
      * @param media media body as stream
@@ -222,11 +251,30 @@ public interface TweetsResources {
      * @param mediaLengthBytes file size in bytes of the full, uploaded image/video.
      *
      * @return upload result
-     * @throws TwitterException when Twitter service or network is unavailable
-     * @see <a href="https://dev.twitter.com/rest/public/uploading-media#chunkedupload">Uploading Media | Twitter Developers</a>
-     * @see <a href="https://dev.twitter.com/docs/api/1.1/post/statuses/update">POST statuses/update | Twitter Developers</a>
-     * @see <a href="https://dev.twitter.com/docs/api/multiple-media-extended-entities">Multiple Media Entities in Statuses</a>
+     * @throws TwitterException assorted uploading errors or when Twitter service or network is unavailable
+     * @see <a href="https://developer.twitter.com/en/docs/media/upload-media/api-reference/post-media-upload">Uploading Media | Twitter Developers</a>
+     * @see <a href="https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/post-statuses-update.html">POST statuses/update | Twitter Developers</a>
      * @since HubSpot/Twitter4J 4.0.8
      */
     UploadedMedia uploadMediaChunkedBuffered(String fileName, InputStream media, String mimeType, TweetMediaType tweetMediaType, long mediaLengthBytes) throws TwitterException;
+
+    /**
+     * Uploads media using a chunked approach to be attached via {@link #updateStatus(twitter4j.StatusUpdate)}.
+     * This should be used for videos, images, or animated gifs.
+     * This method does a buffered read of the input stream. For an in-memory approach, see {@link #uploadMediaChunkedAndConfirm)}.
+     * This method also checks the status to confirm the upload succeeded. To implement your own status-checking, see {@link #uploadMediaChunkedBuffered}.
+     *
+     * @param fileName media file name
+     * @param media media body as stream
+     * @param mimeType e.g. MIME type (aka media_type) of media (e.g. video/mp4)
+     * @param tweetMediaType generally IMAGE or VIDEO. Enables advanced features like tracking video duration.
+     * @param mediaLengthBytes file size in bytes of the full, uploaded image/video.
+     *
+     * @return upload result
+     * @throws TwitterException assorted uploading errors or when Twitter service or network is unavailable
+     * @see <a href="https://developer.twitter.com/en/docs/media/upload-media/api-reference/post-media-upload">Uploading Media | Twitter Developers</a>
+     * @see <a href="https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/post-statuses-update.html">POST statuses/update | Twitter Developers</a>
+     * @since HubSpot/Twitter4J 4.0.11
+     */
+    UploadedMedia uploadMediaChunkedBufferedAndConfirm(String fileName, InputStream media, String mimeType, TweetMediaType tweetMediaType, long mediaLengthBytes) throws TwitterException;
 }
