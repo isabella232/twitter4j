@@ -15,14 +15,22 @@
  */
 package twitter4j;
 
-import com.google.appengine.api.urlfetch.FetchOptions.Builder;
-import com.google.appengine.api.urlfetch.*;
+import static twitter4j.RequestMethod.POST;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import static twitter4j.RequestMethod.POST;
+import com.google.appengine.api.urlfetch.FetchOptions.Builder;
+import com.google.appengine.api.urlfetch.HTTPHeader;
+import com.google.appengine.api.urlfetch.HTTPMethod;
+import com.google.appengine.api.urlfetch.HTTPRequest;
+import com.google.appengine.api.urlfetch.URLFetchService;
+import com.google.appengine.api.urlfetch.URLFetchServiceFactory;
 
 /**
  * @author Takao Nakaguchi - takao.nakaguchi at gmail.com
@@ -85,10 +93,17 @@ class AlternativeHttpClientImpl extends HttpClientBase {
                     write(out, boundary + "--\r\n");
                     write(out, "\r\n");
                 } else {
-                    request.setHeader(new HTTPHeader(
+                    if (HttpParameter.containsJson(req.getParameters())) {
+                        request.setHeader(new HTTPHeader(
+                            "Content-Type",
+                            "application/json"
+                        ));
+                    } else {
+                        request.setHeader(new HTTPHeader(
                             "Content-Type",
                             "application/x-www-form-urlencoded"
-                    ));
+                        ));
+                    }
                     String postParam = HttpParameter.encodeParameters(req.getParameters());
                     logger.debug("Post Params: ", postParam);
                     byte[] bytes = postParam.getBytes("UTF-8");

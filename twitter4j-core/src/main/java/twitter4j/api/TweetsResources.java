@@ -277,4 +277,16 @@ public interface TweetsResources {
      * @since HubSpot/Twitter4J 4.0.11
      */
     UploadedMedia uploadMediaChunkedBufferedAndConfirm(String fileName, InputStream media, String mimeType, TweetMediaType tweetMediaType, long mediaLengthBytes) throws TwitterException;
+
+    /**
+     * Creates metadata for the uploaded media image
+     * <br>This method calls https://api.twitter.com/1.1/media/metadata/create.json
+     *
+     * @param mediaId media id
+     * @param altText alt text
+     * @return status code: 200 (success), 4xx (Bad Request), 5xx (server error)
+     * @throws TwitterException
+     * @since HubSpot/Twitter4J 4.0.12
+     */
+    long createMediaMetadata(long mediaId, String altText) throws TwitterException;
 }
