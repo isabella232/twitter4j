@@ -35,6 +35,7 @@ public final class HttpParameter implements Comparable<HttpParameter>, java.io.S
     private String value = null;
     private File file = null;
     private InputStream fileBody = null;
+    private String json = null;
 
     public HttpParameter(String name, String value) {
         this.name = name;
@@ -72,12 +73,24 @@ public final class HttpParameter implements Comparable<HttpParameter>, java.io.S
         this.value = String.valueOf(value);
     }
 
+    public HttpParameter(String json) {
+        this.json = json;
+    }
+
     public String getName() {
         return name;
     }
 
     public String getValue() {
         return value;
+    }
+
+    public String getJson() {
+        return json;
+    }
+
+    public boolean isJson() {
+        return json != null;
     }
 
     public File getFile() {
@@ -148,6 +161,8 @@ public final class HttpParameter implements Comparable<HttpParameter>, java.io.S
 
         if (file != null ? !file.equals(that.file) : that.file != null)
             return false;
+        if (json != null ? !json.equals(that.json) : that.json != null)
+            return false;
         if (fileBody != null ? !fileBody.equals(that.fileBody) : that.fileBody != null)
             return false;
         if (!name.equals(that.name)) return false;
@@ -181,6 +196,30 @@ public final class HttpParameter implements Comparable<HttpParameter>, java.io.S
             }
         }
         return containsFile;
+    }
+
+    public static boolean containsJson(HttpParameter[] params) {
+        if (null == params) {
+            return false;
+        }
+        for (HttpParameter param : params) {
+            if (param.isJson()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean containsJson(List<HttpParameter> params) {
+        if (null == params) {
+            return false;
+        }
+        for (HttpParameter param : params) {
+            if (param.isJson()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static HttpParameter[] getParameterArray(String name, String value) {
@@ -218,11 +257,19 @@ public final class HttpParameter implements Comparable<HttpParameter>, java.io.S
                 ", value='" + value + '\'' +
                 ", file=" + file +
                 ", fileBody=" + fileBody +
+                ", json=" + json +
                 '}';
     }
 
     @Override
     public int compareTo(HttpParameter o) {
+        if (json != null) {
+            return o.json == null ? -1 : json.compareTo(o.json);
+        }
+        if (o.json != null) {
+            return 1;
+        }
+
         int compared;
         compared = name.compareTo(o.name);
         if (0 == compared) {
@@ -239,6 +286,9 @@ public final class HttpParameter implements Comparable<HttpParameter>, java.io.S
         for (int j = 0; j < httpParams.length; j++) {
             if (httpParams[j].isFile()) {
                 throw new IllegalArgumentException("parameter [" + httpParams[j].name + "]should be text");
+            }
+            if (httpParams[j].isJson()) {
+                return httpParams[j].getJson();
             }
             if (j != 0) {
                 buf.append("&");
