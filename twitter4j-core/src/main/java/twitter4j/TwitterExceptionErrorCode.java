@@ -1,6 +1,10 @@
 package twitter4j;
 
+import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * https://developer.twitter.com/en/docs/basics/response-codes
@@ -55,6 +59,8 @@ public enum TwitterExceptionErrorCode {
   INVALID_ATTACHMENT_TYPE_QUANTITY(386, Optional.of(HttpResponseCode.FORBIDDEN)),
   INVALID_URL(407, Optional.of(HttpResponseCode.BAD_REQUEST));
 
+  private static final Map<Integer, TwitterExceptionErrorCode> TWITTER_EXCEPTION_ERROR_CODES_BY_INTEGER_ERROR_CODE = Arrays.asList(values()).stream()
+      .collect(Collectors.toMap(TwitterExceptionErrorCode::getCode, Function.identity()));
   private final int code;
   private final Optional<Integer> associatedStatusCode;
 
@@ -71,4 +77,12 @@ public enum TwitterExceptionErrorCode {
     return associatedStatusCode;
   }
 
+  public static Optional<TwitterExceptionErrorCode> tryParseFromErrorCode(int errorCode) {
+    return Optional.ofNullable(TWITTER_EXCEPTION_ERROR_CODES_BY_INTEGER_ERROR_CODE.get(errorCode));
+  }
+
+  public static TwitterExceptionErrorCode parseFromErrorCode(int errorCode) {
+    return tryParseFromErrorCode(errorCode)
+        .orElseThrow(() -> new IllegalArgumentException(String.format("%s is not a valid Twitter error code", errorCode)));
+  }
 }
