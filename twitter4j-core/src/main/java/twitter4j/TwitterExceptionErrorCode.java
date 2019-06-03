@@ -40,6 +40,7 @@ public enum TwitterExceptionErrorCode {
   FORBIDDEN_STATUS_LIMIT(185, Optional.of(HttpResponseCode.FORBIDDEN)),
   INVALID_STATUS_LENGTH(186, Optional.of(HttpResponseCode.FORBIDDEN)),
   INVALID_STATUS_DUPLICATE(187, Optional.of(HttpResponseCode.FORBIDDEN)),
+  INVALID_URL_PARAMETER(195, Optional.of(HttpResponseCode.FORBIDDEN)),
   FORBIDDEN_SPAM_REPORT_LIMIT(205, Optional.of(HttpResponseCode.FORBIDDEN)),
   MISSING_AUTHENTICATION_DATA(215, Optional.of(HttpResponseCode.BAD_REQUEST)),
   FORBIDDEN_ACCESS_DENIED(220, Optional.of(HttpResponseCode.FORBIDDEN)),
@@ -59,8 +60,9 @@ public enum TwitterExceptionErrorCode {
   INVALID_ATTACHMENT_TYPE_QUANTITY(386, Optional.of(HttpResponseCode.FORBIDDEN)),
   INVALID_URL(407, Optional.of(HttpResponseCode.BAD_REQUEST));
 
-  private static final Map<Integer, TwitterExceptionErrorCode> TWITTER_EXCEPTION_ERROR_CODES_BY_INTEGER_ERROR_CODE = Arrays.asList(values()).stream()
+  private static final Map<Integer, TwitterExceptionErrorCode> TWITTER_EXCEPTION_ERROR_CODES_BY_INTEGER_ERROR_CODE = Arrays.stream(values())
       .collect(Collectors.toMap(TwitterExceptionErrorCode::getCode, Function.identity()));
+
   private final int code;
   private final Optional<Integer> associatedStatusCode;
 

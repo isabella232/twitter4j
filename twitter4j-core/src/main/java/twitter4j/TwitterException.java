@@ -298,7 +298,7 @@ public class TwitterException extends Exception implements TwitterResponse, Http
                 cause = "Authentication credentials (created/viewed at https://apps.twitter.com/) were missing or incorrect. Ensure that you have set valid consumer key/secret, access token/secret, and the system clock is in sync.";
                 break;
             case FORBIDDEN:
-                cause = "Request refused. Possibly due to the user hitting a usage limit. See error codes: https://developer.twitter.com/en/docs/basics/response-codes";
+                cause = "Request refused. See error codes: https://developer.twitter.com/en/docs/basics/response-codes";
                 break;
             case NOT_FOUND:
                 cause = "The URI requested is invalid or the resource requested, such as a user, does not exist.";
