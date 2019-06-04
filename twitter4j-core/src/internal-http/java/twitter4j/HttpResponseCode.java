@@ -33,8 +33,9 @@ public interface HttpResponseCode {
     int GONE = 410; // Gone: Used to indicate that an API endpoint has been turned off.
     int ENTITY_TOO_LARGE = 413; // Undocumented response code returned during media upload when the file included is too large.
     int ENHANCE_YOUR_CALM = 420; // Enhance Your Calm: Returned by the Search and Trends API  when you are being rate limited. Not registered in RFC.
-    int UNPROCESSABLE_ENTITY = 422; //Returned when an image uploaded to POST account/update_profile_banner is unable to be processed.
-    int TOO_MANY_REQUESTS = 429; //Returned in API v1.1 when a request cannot be served due to the application's rate limit having been exhausted for the resource. See Rate Limiting in API v1.1.
+    int UNPROCESSABLE_ENTITY = 422; // Returned when an image uploaded to POST account/update_profile_banner is unable to be processed.
+    int TOO_MANY_REQUESTS = 429; // Returned in API v1.1 when a request cannot be served due to the application's rate limit having been exhausted for the resource. See Rate Limiting in API v1.1.
+    int HEADER_FIELDS_TOO_LARGE = 431; // Undocumented but seems to occur when query strings are too large
     int INTERNAL_SERVER_ERROR = 500; // Internal Server Error: Something is broken. Please post to the group so the Twitter team can investigate.
     int BAD_GATEWAY = 502; // Bad Gateway: Twitter is down or being upgraded.
     int SERVICE_UNAVAILABLE = 503; // Service Unavailable: The Twitter servers are up, but overloaded with requests. Try again later. The search and trend methods use this to indicate when you are being rate limited.

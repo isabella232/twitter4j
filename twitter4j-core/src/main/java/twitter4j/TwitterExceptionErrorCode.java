@@ -13,6 +13,7 @@ public enum TwitterExceptionErrorCode {
   INVALID_COORDINATE(3, Optional.of(HttpResponseCode.BAD_REQUEST)),
   MISSING_LOCATION(13, Optional.of(HttpResponseCode.NOT_FOUND)),
   MISSING_USER_SEARCH(17, Optional.of(HttpResponseCode.NOT_FOUND)),
+  MISSING_QUERY_PARAMETERS(25, Optional.of(HttpResponseCode.BAD_REQUEST)),
   INVALID_AUTHENTICATION_DATA(32, Optional.of(HttpResponseCode.UNAUTHORIZED)),
   MISSING_RESOURCE(34, Optional.of(HttpResponseCode.NOT_FOUND)),
   INVALID_SPAM_REPORT(36, Optional.of(HttpResponseCode.FORBIDDEN)),
