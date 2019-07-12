@@ -22,14 +22,19 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Authenticator;
-import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
 
 import twitter4j.conf.ConfigurationContext;
 
@@ -83,6 +88,20 @@ class HttpClientImpl extends HttpClientBase implements HttpResponseCode {
         return request(new HttpRequest(RequestMethod.POST, url, params, null, null));
     }
 
+    private SSLContext getTlsSslContext() throws TwitterException {
+        // https://stackoverflow.com/questions/30121510/java-httpsurlconnection-and-tls-1-2
+        // If the KeyManager[] parameter is null, the installed security providers are searched for the highest-priority implementation of the KeyManagerFactory, from which an appropriate KeyManager is obtained.
+        // If the TrustManager[] parameter is null, the installed security providers are searched for the highest-priority implementation of the TrustManagerFactory, from which an appropriate TrustManager is obtained.
+        // Likewise, the SecureRandom parameter can be null, in which case a default implementation is used.
+        try {
+            SSLContext sc = SSLContext.getInstance("TLSv1.2");
+            sc.init(null, null, new java.security.SecureRandom());
+            return sc;
+        } catch (KeyManagementException | NoSuchAlgorithmException e) {
+            throw new TwitterException("Generating TLSv1.2 SSLContext failed", e);
+        }
+    }
+
     @Override
     public HttpResponse handleRequest(HttpRequest req) throws TwitterException {
         int retriedCount;
@@ -91,13 +110,15 @@ class HttpClientImpl extends HttpClientBase implements HttpResponseCode {
         for (retriedCount = 0; retriedCount < retry; retriedCount++) {
             int responseCode = -1;
             try {
-                HttpURLConnection con;
+                HttpsURLConnection con;
                 OutputStream os = null;
                 try {
                     con = getConnection(req.getURL());
                     con.setDoInput(true);
                     setHeaders(req, con);
                     con.setRequestMethod(req.getMethod().name());
+                    con.setSSLSocketFactory(getTlsSslContext().getSocketFactory());
+
                     if (req.getMethod() == RequestMethod.POST) {
                         if (HttpParameter.containsFile(req.getParameters())) {
                             String boundary = "----Twitter4J-upload" + System.currentTimeMillis();
@@ -142,8 +163,7 @@ class HttpClientImpl extends HttpClientBase implements HttpResponseCode {
                             String postParam = HttpParameter.encodeParameters(req.getParameters());
                             logger.debug("Post Params: ", postParam);
                             byte[] bytes = postParam.getBytes("UTF-8");
-                            con.setRequestProperty("Content-Length",
-                                    Integer.toString(bytes.length));
+                            con.setRequestProperty("Content-Length", Integer.toString(bytes.length));
                             con.setDoOutput(true);
                             os = con.getOutputStream();
                             os.write(bytes);
@@ -157,11 +177,11 @@ class HttpClientImpl extends HttpClientBase implements HttpResponseCode {
                     if (logger.isDebugEnabled()) {
                         logger.debug("Response: ");
                         Map<String, List<String>> responseHeaders = con.getHeaderFields();
-                        for (String key : responseHeaders.keySet()) {
-                            List<String> values = responseHeaders.get(key);
+                        for (Entry<String, List<String>> stringListEntry : responseHeaders.entrySet()) {
+                            List<String> values = stringListEntry.getValue();
                             for (String value : values) {
-                                if (key != null) {
-                                    logger.debug(key + ": " + value);
+                                if (stringListEntry.getKey() != null) {
+                                    logger.debug(stringListEntry.getKey() + ": " + value);
                                 } else {
                                     logger.debug(value);
                                 }
@@ -170,7 +190,7 @@ class HttpClientImpl extends HttpClientBase implements HttpResponseCode {
                     }
 
                     if (responseCode < OK || (responseCode != FOUND && MULTIPLE_CHOICES <= responseCode)) {
-                        if (responseCode == ENHANCE_YOUR_CALM || responseCode == BAD_REQUEST || responseCode < INTERNAL_SERVER_ERROR || retriedCount == CONF.getHttpRetryCount()) {
+                        if (responseCode < INTERNAL_SERVER_ERROR || retriedCount == CONF.getHttpRetryCount()) {
                             throw new TwitterException(res.asString(), res);
                         }
                         // will retry if the status code is INTERNAL_SERVER_ERROR
@@ -213,9 +233,9 @@ class HttpClientImpl extends HttpClientBase implements HttpResponseCode {
      * sets HTTP headers
      *
      * @param req        The request
-     * @param connection HttpURLConnection
+     * @param connection HttpsURLConnection
      */
-    private void setHeaders(HttpRequest req, HttpURLConnection connection) {
+    private void setHeaders(HttpRequest req, HttpsURLConnection connection) {
         if (logger.isDebugEnabled()) {
             logger.debug("Request: ");
             logger.debug(req.getMethod().name() + " ", req.getURL());
@@ -236,8 +256,8 @@ class HttpClientImpl extends HttpClientBase implements HttpResponseCode {
         }
     }
 
-    HttpURLConnection getConnection(String url) throws IOException {
-        HttpURLConnection con;
+    HttpsURLConnection getConnection(String url) throws IOException {
+        HttpsURLConnection con;
         if (isProxyConfigured()) {
             if (CONF.getHttpProxyUser() != null && !CONF.getHttpProxyUser().isEmpty()) {
                 if (logger.isDebugEnabled()) {
@@ -263,9 +283,9 @@ class HttpClientImpl extends HttpClientBase implements HttpResponseCode {
             if (logger.isDebugEnabled()) {
                 logger.debug("Opening proxied connection(" + CONF.getHttpProxyHost() + ":" + CONF.getHttpProxyPort() + ")");
             }
-            con = (HttpURLConnection) new URL(url).openConnection(proxy);
+            con = (HttpsURLConnection) new URL(url).openConnection(proxy);
         } else {
-            con = (HttpURLConnection) new URL(url).openConnection();
+            con = (HttpsURLConnection) new URL(url).openConnection();
         }
         if (CONF.getHttpConnectionTimeout() > 0) {
             con.setConnectTimeout(CONF.getHttpConnectionTimeout());
