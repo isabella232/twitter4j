@@ -16,11 +16,15 @@
 
 package twitter4j;
 
-import twitter4j.conf.ConfigurationContext;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.List;
 import java.util.Map;
+
+import twitter4j.conf.ConfigurationContext;
 
 /**
  * A data class representing HTTP Response
@@ -57,7 +61,7 @@ public abstract class HttpResponse {
      * This method cannot be called after calling asString() or asDcoument()<br>
      * It is suggested to call disconnect() after consuming the stream.
      * <p>
-     * Disconnects the internal HttpURLConnection silently.
+     * Disconnects the internal HttpsURLConnection silently.
      *
      * @return response body stream
      * @see #disconnect()
@@ -71,7 +75,7 @@ public abstract class HttpResponse {
 
     /**
      * Returns the response body as string.<br>
-     * Disconnects the internal HttpURLConnection silently.
+     * Disconnects the internal HttpsURLConnection silently.
      *
      * @return response body
      * @throws TwitterException when there is any network issue upon response body consumption
@@ -120,7 +124,7 @@ public abstract class HttpResponse {
 
     /**
      * Returns the response body as twitter4j.JSONObject.<br>
-     * Disconnects the internal HttpURLConnection silently.
+     * Disconnects the internal HttpsURLConnection silently.
      *
      * @return response body as twitter4j.JSONObject
      * @throws TwitterException when the response body is not in JSON Object format
@@ -164,7 +168,7 @@ public abstract class HttpResponse {
 
     /**
      * Returns the response body as twitter4j.JSONArray.<br>
-     * Disconnects the internal HttpURLConnection silently.
+     * Disconnects the internal HttpsURLConnection silently.
      *
      * @return response body as twitter4j.JSONArray
      * @throws TwitterException when the response body is not in JSON Array format

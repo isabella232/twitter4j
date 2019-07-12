@@ -22,7 +22,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Authenticator;
-import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
 import java.net.Proxy;
@@ -234,9 +233,9 @@ class HttpClientImpl extends HttpClientBase implements HttpResponseCode {
      * sets HTTP headers
      *
      * @param req        The request
-     * @param connection HttpURLConnection
+     * @param connection HttpsURLConnection
      */
-    private void setHeaders(HttpRequest req, HttpURLConnection connection) {
+    private void setHeaders(HttpRequest req, HttpsURLConnection connection) {
         if (logger.isDebugEnabled()) {
             logger.debug("Request: ");
             logger.debug(req.getMethod().name() + " ", req.getURL());
