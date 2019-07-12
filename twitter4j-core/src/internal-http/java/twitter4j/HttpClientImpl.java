@@ -26,15 +26,12 @@ import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.net.URL;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
 
 import twitter4j.conf.ConfigurationContext;
 
@@ -88,20 +85,6 @@ class HttpClientImpl extends HttpClientBase implements HttpResponseCode {
         return request(new HttpRequest(RequestMethod.POST, url, params, null, null));
     }
 
-    private SSLContext getTlsSslContext() throws TwitterException {
-        // https://stackoverflow.com/questions/30121510/java-httpsurlconnection-and-tls-1-2
-        // If the KeyManager[] parameter is null, the installed security providers are searched for the highest-priority implementation of the KeyManagerFactory, from which an appropriate KeyManager is obtained.
-        // If the TrustManager[] parameter is null, the installed security providers are searched for the highest-priority implementation of the TrustManagerFactory, from which an appropriate TrustManager is obtained.
-        // Likewise, the SecureRandom parameter can be null, in which case a default implementation is used.
-        try {
-            SSLContext sc = SSLContext.getInstance("TLSv1.2");
-            sc.init(null, null, new java.security.SecureRandom());
-            return sc;
-        } catch (KeyManagementException | NoSuchAlgorithmException e) {
-            throw new TwitterException("Generating TLSv1.2 SSLContext failed", e);
-        }
-    }
-
     @Override
     public HttpResponse handleRequest(HttpRequest req) throws TwitterException {
         int retriedCount;
@@ -117,7 +100,7 @@ class HttpClientImpl extends HttpClientBase implements HttpResponseCode {
                     con.setDoInput(true);
                     setHeaders(req, con);
                     con.setRequestMethod(req.getMethod().name());
-                    con.setSSLSocketFactory(getTlsSslContext().getSocketFactory());
+                    con.setSSLSocketFactory(getTlsSslSocketFactory());
 
                     if (req.getMethod() == RequestMethod.POST) {
                         if (HttpParameter.containsFile(req.getParameters())) {
