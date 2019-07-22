@@ -37,6 +37,7 @@ public enum TwitterExceptionErrorCode {
   FAILED_DIRECT_MESSAGE(151, Optional.of(HttpResponseCode.FORBIDDEN)),
   INVALID_FOLLOW_DUPLICATE(160, Optional.of(HttpResponseCode.FORBIDDEN)),
   FORBIDDEN_FOLLOW_LIMIT(161, Optional.of(HttpResponseCode.FORBIDDEN)),
+  MISSING_STATUS_PARAMETER(170, Optional.of(HttpResponseCode.FORBIDDEN)),
   FORBIDDEN_STATUS_VIEW(179, Optional.of(HttpResponseCode.FORBIDDEN)),
   FORBIDDEN_STATUS_LIMIT(185, Optional.of(HttpResponseCode.FORBIDDEN)),
   INVALID_STATUS_LENGTH(186, Optional.of(HttpResponseCode.FORBIDDEN)),
