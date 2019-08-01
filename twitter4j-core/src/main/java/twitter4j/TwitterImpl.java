@@ -373,7 +373,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
     try {
       UploadedMedia uploadedMedia = doChunkedUploadInMemory(fileName, media, mimeType, tweetMediaType);
       return uploadMediaChunkedFinalize(uploadedMedia.getMediaId());
-    } catch (IOException e) {
+    } catch (IOException | RuntimeException e) {
       throw new TwitterException(e);
     }
   }
@@ -384,7 +384,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
       UploadedMedia uploadedMedia = doChunkedUploadInMemory(fileName, media, mimeType, tweetMediaType);
       uploadedMedia = uploadMediaChunkedFinalize(uploadedMedia.getMediaId());
       return uploadMediaChunkedConfirmAndRetrieveUpload(uploadedMedia);
-    } catch (IOException e) {
+    } catch (IOException | RuntimeException e) {
       throw new TwitterException(e);
     }
   }
@@ -394,7 +394,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
     try {
       UploadedMedia uploadedMedia = doBufferedChunkedUpload(fileName, media, mimeType, tweetMediaType, mediaLengthBytes);
       return uploadMediaChunkedFinalize(uploadedMedia.getMediaId());
-    } catch (IOException e) {
+    } catch (IOException | RuntimeException e) {
       throw new TwitterException(e);
     }
   }
@@ -405,7 +405,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
       UploadedMedia uploadedMedia = doBufferedChunkedUpload(fileName, media, mimeType, tweetMediaType, mediaLengthBytes);
       uploadedMedia = uploadMediaChunkedFinalize(uploadedMedia.getMediaId());
       return uploadMediaChunkedConfirmAndRetrieveUpload(uploadedMedia);
-    } catch (IOException e) {
+    } catch (IOException | RuntimeException e) {
       throw new TwitterException(e);
     }
   }
