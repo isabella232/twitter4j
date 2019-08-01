@@ -373,7 +373,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
     try {
       UploadedMedia uploadedMedia = doChunkedUploadInMemory(fileName, media, mimeType, tweetMediaType);
       return uploadMediaChunkedFinalize(uploadedMedia.getMediaId());
-    } catch (Exception e) {
+    } catch (IOException e) {
       throw new TwitterException(e);
     }
   }
@@ -384,7 +384,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
       UploadedMedia uploadedMedia = doChunkedUploadInMemory(fileName, media, mimeType, tweetMediaType);
       uploadedMedia = uploadMediaChunkedFinalize(uploadedMedia.getMediaId());
       return uploadMediaChunkedConfirmAndRetrieveUpload(uploadedMedia);
-    } catch (Exception e) {
+    } catch (IOException e) {
       throw new TwitterException(e);
     }
   }
@@ -394,7 +394,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
     try {
       UploadedMedia uploadedMedia = doBufferedChunkedUpload(fileName, media, mimeType, tweetMediaType, mediaLengthBytes);
       return uploadMediaChunkedFinalize(uploadedMedia.getMediaId());
-    } catch (Exception e) {
+    } catch (IOException e) {
       throw new TwitterException(e);
     }
   }
@@ -405,7 +405,7 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
       UploadedMedia uploadedMedia = doBufferedChunkedUpload(fileName, media, mimeType, tweetMediaType, mediaLengthBytes);
       uploadedMedia = uploadMediaChunkedFinalize(uploadedMedia.getMediaId());
       return uploadMediaChunkedConfirmAndRetrieveUpload(uploadedMedia);
-    } catch (Exception e) {
+    } catch (IOException e) {
       throw new TwitterException(e);
     }
   }
@@ -430,14 +430,13 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
 
       // if the upload has failed, parse the error message and try to throw a detailed Twitter exception
       if (state.equals(CHUNKED_STATE_FAIL)) {
-        String errorReason = !uploadedMedia.getUploadErrorDisplay().isEmpty() ? uploadedMedia.getUploadErrorDisplay() : "No reason was parsed.";
+        String errorReason = uploadedMedia.getUploadErrorDisplay().isEmpty() ? "No reason was parsed." : uploadedMedia.getUploadErrorDisplay();
         String errorMessage = String.format("Failed to finalize the chunked upload. Reason: %s", errorReason);
         Optional<Integer> uploadErrorCodeMaybe = uploadedMedia.getUploadErrorCode();
         if (uploadErrorCodeMaybe.isPresent()) {
           throw new TwitterException(errorMessage, uploadErrorCodeMaybe.get());
-        } else {
-          throw new TwitterException(errorMessage);
         }
+        throw new TwitterException(errorMessage);
       }
 
       // if still in progress, update the tracked percentage and wait before checking progress again
@@ -528,12 +527,9 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
   @Override
   public QueryResult search(Query query) throws TwitterException {
     if (query.nextPage() != null) {
-      return factory.createQueryResult(get(conf.getRestBaseURL()
-          + "search/tweets.json" + query.nextPage()), query);
-    } else {
-      return factory.createQueryResult(get(conf.getRestBaseURL()
-          + "search/tweets.json", query.asHttpParameterArray()), query);
+      return factory.createQueryResult(get(conf.getRestBaseURL() + "search/tweets.json" + query.nextPage()), query);
     }
+    return factory.createQueryResult(get(conf.getRestBaseURL() + "search/tweets.json", query.asHttpParameterArray()), query);
   }
 
   /* Direct Messages Resources */
