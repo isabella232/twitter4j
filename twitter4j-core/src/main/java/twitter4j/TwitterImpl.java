@@ -286,6 +286,17 @@ class TwitterImpl extends TwitterBaseImpl implements Twitter {
     return factory.createStatusList(get(conf.getRestBaseURL() + "statuses/lookup.json?id=" + StringUtil.join(ids)));
   }
 
+  /**
+   * @deprecated This is to demo the new Twitter metrics endpoint linked to below. Don't rely on it.
+   * https://developer.twitter.com/en/docs/labs/tweet-metrics/api-reference/get-tweets-metrics-v1.html
+   */
+  @Deprecated
+  @Override
+  public JSONObject metricsPrivate(long... ids) throws TwitterException {
+    // TODO: if we end up using this, create an object for it
+    return get("https://api.twitter.com/labs/1/tweets/metrics/private?ids=" + StringUtil.join(ids)).asJSONObject();
+  }
+
   @Override
   public UploadedMedia uploadMedia(File image) throws TwitterException {
     checkFileValidity(image);
