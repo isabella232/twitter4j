@@ -20,12 +20,13 @@ import java.io.File;
 import java.io.InputStream;
 
 import twitter4j.IDs;
-import twitter4j.TweetMediaType;
+import twitter4j.JSONObject;
 import twitter4j.OEmbed;
 import twitter4j.OEmbedRequest;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
+import twitter4j.TweetMediaType;
 import twitter4j.TwitterException;
 import twitter4j.UploadedMedia;
 
@@ -162,6 +163,13 @@ public interface TweetsResources {
      * @since Twitter4J 4.0.2
      */
     ResponseList<Status> lookup(long... ids) throws TwitterException;
+
+    /**
+     * @deprecated This is to demo the new Twitter metrics endpoint linked to below. Don't rely on it.
+     * https://developer.twitter.com/en/docs/labs/tweet-metrics/api-reference/get-tweets-metrics-v1.html
+     */
+    @Deprecated
+    JSONObject metricsPrivate(long... ids) throws TwitterException;
 
     /**
      * Uploads media image to be attached via {@link #updateStatus(twitter4j.StatusUpdate)}
